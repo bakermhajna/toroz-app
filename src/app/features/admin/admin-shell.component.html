@@ -156,9 +156,9 @@
         <div class="row2">
           <div class="field">
             <label>קטגוריה</label>
-            <select [value]="fTargetCat()" (change)="fTargetCat.set($any($event.target).value)">
+            <select (change)="fTargetCat.set($any($event.target).value)">
               @for (entry of sortedCats(); track entry[0]) {
-                <option [value]="entry[0]">{{ entry[1].icon }} {{ entry[1].title }}</option>
+                <option [value]="entry[0]" [selected]="entry[0] === fTargetCat()">{{ entry[1].icon }} {{ entry[1].title }}</option>
               }
             </select>
           </div>
