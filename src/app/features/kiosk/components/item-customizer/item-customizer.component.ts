@@ -55,14 +55,14 @@ export class ItemCustomizerComponent implements OnInit {
     const meta = this.effectiveMeta;
 
     const details: string[] = [];
-    if (it.hasBurgerSize && s.burgerSize != null) details.push(it.burgerSizes![s.burgerSize].label);
-    else if (it.hasSizeOption && s.size != null) details.push(it.sizes![s.size].label);
+    if (it.hasBurgerSize && s.burgerSize != null && it.burgerSizes?.[s.burgerSize]) details.push(it.burgerSizes[s.burgerSize].label);
+    else if (it.hasSizeOption && s.size != null && it.sizes?.[s.size]) details.push(it.sizes[s.size].label);
     if (s.spreads.length)      details.push(`ממרחים: ${s.spreads.join(', ')}`);
     if (s.veggies.length)      details.push(`ירקות: ${s.veggies.join(', ')}`);
     if (s.sauces.length)       details.push(`רוטב: ${s.sauces.join(', ')}`);
-    const extLabels = s.extras.map(i => it.extras![i].label);
-    const gExtLabels = s.globalExtras.map(i => meta.extras[i].label);
-    const bExtLabels = s.burgerExtras.map(i => it.burgerExtras![i].label);
+    const extLabels = s.extras.map(i => it.extras?.[i]?.label ?? '');
+    const gExtLabels = s.globalExtras.map(i => meta.extras[i]?.label ?? '');
+    const bExtLabels = s.burgerExtras.map(i => it.burgerExtras?.[i]?.label ?? '');
     const allExtras = [...extLabels, ...gExtLabels, ...bExtLabels];
     if (allExtras.length) details.push(`תוספות: ${allExtras.join(', ')}`);
 
@@ -71,11 +71,11 @@ export class ItemCustomizerComponent implements OnInit {
 
   private calcPrice(item: MenuItem, sel: CustomSelections): number {
     let p = 0;
-    if (item.hasBurgerSize && sel.burgerSize != null) {
-      const bs = item.burgerSizes![sel.burgerSize];
-      p = item.specialPrice ? (item.burgerSizes![0].price + bs.price) : bs.price;
-    } else if (item.hasSizeOption && sel.size != null) {
-      p = item.sizes![sel.size].price;
+    const bs = item.burgerSizes?.[sel.burgerSize ?? 0];
+    if (item.hasBurgerSize && sel.burgerSize != null && bs) {
+      p = item.specialPrice ? ((item.burgerSizes?.[0]?.price ?? 0) + bs.price) : bs.price;
+    } else if (item.hasSizeOption && sel.size != null && item.sizes?.[sel.size]) {
+      p = item.sizes[sel.size].price;
     } else {
       p = item.basePrice;
     }

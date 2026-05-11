@@ -7,24 +7,30 @@ export class OrderService implements OnDestroy {
   private db = inject(Database);
 
   readonly todayOrders = signal<Order[]>([]);
+  readonly doneOrders = signal<Order[]>([]);
 
-  private unsubscribe: (() => void) | null = null;
+  private unsubscribeToday: (() => void) | null = null;
+  private unsubscribeDone: (() => void) | null = null;
 
   constructor() {
-    this.startListener();
+    this.startListeners();
   }
 
-  private startListener(): void {
-    const ordersRef = ref(this.db, 'todayOrders');
-    this.unsubscribe = onValue(ordersRef, snapshot => {
-      if (!snapshot.exists()) {
-        this.todayOrders.set([]);
-        return;
-      }
-      const raw = snapshot.val() as Record<string, Omit<Order, 'id'>>;
-      const orders: Order[] = Object.entries(raw).map(([id, data]) => ({ ...data, id }));
+  private startListeners(): void {
+    this.unsubscribeToday = onValue(ref(this.db, 'todayOrders'), snap => {
+      if (!snap.exists()) { this.todayOrders.set([]); return; }
+      const raw = snap.val() as Record<string, Omit<Order, 'id'>>;
+      const orders = Object.entries(raw).map(([id, data]) => ({ ...data, id }));
       orders.sort((a, b) => a.createdAt - b.createdAt);
       this.todayOrders.set(orders);
+    });
+
+    this.unsubscribeDone = onValue(ref(this.db, 'doneOrders'), snap => {
+      if (!snap.exists()) { this.doneOrders.set([]); return; }
+      const raw = snap.val() as Record<string, Omit<Order, 'id'>>;
+      const orders = Object.entries(raw).map(([id, data]) => ({ ...data, id }));
+      orders.sort((a, b) => (b.updatedAt ?? b.createdAt) - (a.updatedAt ?? a.createdAt));
+      this.doneOrders.set(orders);
     });
   }
 
@@ -40,7 +46,7 @@ export class OrderService implements OnDestroy {
 
   async addOrder(order: Omit<Order, 'id'>): Promise<string> {
     const newRef = push(ref(this.db, 'todayOrders'));
-    await set(newRef, order);
+    await set(newRef, stripUndefined(order));
     return newRef.key!;
   }
 
@@ -69,6 +75,20 @@ export class OrderService implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.unsubscribe?.();
+    this.unsubscribeToday?.();
+    this.unsubscribeDone?.();
   }
+}
+
+// Firebase rejects undefined values — remove them recursively before any write
+function stripUndefined(obj: unknown): unknown {
+  if (Array.isArray(obj)) return obj.map(stripUndefined);
+  if (obj !== null && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj as Record<string, unknown>)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, stripUndefined(v)])
+    );
+  }
+  return obj;
 }

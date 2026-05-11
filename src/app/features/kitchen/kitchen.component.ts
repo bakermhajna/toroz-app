@@ -30,13 +30,18 @@ export class KitchenComponent implements OnInit, OnDestroy {
   readonly counts = computed(() => {
     const orders = this.orderSvc.todayOrders();
     const n = (s: OrderStatus) => orders.filter(o => o.status === s).length;
-    return { new: n('new'), preparing: n('preparing'), ready: n('ready'), get active() { return this.new + this.preparing + this.ready; } };
+    return {
+      new: n('new'), preparing: n('preparing'), ready: n('ready'),
+      done: this.orderSvc.doneOrders().length,
+      get active() { return this.new + this.preparing + this.ready; },
+    };
   });
 
   readonly visibleOrders = computed(() => {
     const f = this.filter();
+    if (f === 'done') return this.orderSvc.doneOrders();
     const orders = this.orderSvc.todayOrders();
-    const list = f === 'active' ? orders.filter(o => o.status !== 'done') : orders.filter(o => o.status === f);
+    const list = f === 'active' ? orders : orders.filter(o => o.status === f);
     const rank: Record<OrderStatus, number> = { new: 0, preparing: 1, ready: 2, done: 3 };
     return [...list].sort((a, b) => rank[a.status] - rank[b.status] || a.createdAt - b.createdAt);
   });

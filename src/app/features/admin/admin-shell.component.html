@@ -51,7 +51,7 @@
                 <div class="cat-name">{{ entry[1].title }}</div>
                 <div class="cat-sub">{{ entry[1].sub }}</div>
               </div>
-              <span class="cat-count">{{ (entry[1].items | keyvalue).length }}</span>
+              <span class="cat-count">{{ (entry[1].items ?? {} | keyvalue).length }}</span>
               <button class="cat-del" (click)="$event.stopPropagation(); deleteCat(entry[0])">🗑</button>
             </div>
           }

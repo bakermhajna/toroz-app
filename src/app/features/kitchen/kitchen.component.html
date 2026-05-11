@@ -15,6 +15,9 @@
     <button class="tab" [class.active]="filter()==='ready'" (click)="setFilter('ready')">
       מוכן <span class="pill">{{ counts().ready }}</span>
     </button>
+    <button class="tab" [class.active]="filter()==='done'" (click)="setFilter('done')">
+      הסתיים <span class="pill">{{ counts().done }}</span>
+    </button>
   </div>
 
   <div class="topbar-actions">
@@ -76,7 +79,7 @@
               <div class="line-name">
                 <span class="check">✓</span> {{ item.name }}
               </div>
-              @if (item.details.length) {
+              @if (item.details?.length) {
                 <div class="line-opts">
                   @for (d of item.details; track d) { <span>{{ d }}</span> }
                 </div>

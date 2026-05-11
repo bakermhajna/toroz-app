@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, resource } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Database, ref, get, set, update, remove } from '@angular/fire/database';
 import { MenuData, MenuCategory, MenuItem, MenuMeta } from '../models/menu.model';
 
@@ -90,60 +90,84 @@ export const MENU_META_SEED: MenuMeta = {
 export class MenuService {
   private db = inject(Database);
 
-  readonly menuResource = resource<MenuData, void>({
-    loader: async () => {
+  private _menu = signal<MenuData | undefined>(undefined);
+  private _menuLoading = signal(true);
+  private _meta = signal<MenuMeta | undefined>(undefined);
+  private _metaLoading = signal(true);
+
+  // Same interface as resource() so templates need no changes
+  readonly menuResource = {
+    value: this._menu.asReadonly(),
+    isLoading: this._menuLoading.asReadonly(),
+  };
+
+  readonly metaResource = {
+    value: this._meta.asReadonly(),
+    isLoading: this._metaLoading.asReadonly(),
+  };
+
+  constructor() {
+    this.loadMenu();
+    this.loadMeta();
+  }
+
+  private async loadMenu(): Promise<void> {
+    this._menuLoading.set(true);
+    try {
       const snap = await get(ref(this.db, 'menu'));
-      if (snap.exists()) return snap.val() as MenuData;
-      return MENU_SEED;
-    },
-  });
+      this._menu.set(snap.exists() ? snap.val() as MenuData : MENU_SEED);
+    } finally {
+      this._menuLoading.set(false);
+    }
+  }
 
-  readonly metaResource = resource<MenuMeta, void>({
-    loader: async () => {
+  private async loadMeta(): Promise<void> {
+    this._metaLoading.set(true);
+    try {
       const snap = await get(ref(this.db, 'menuMeta'));
-      if (snap.exists()) return snap.val() as MenuMeta;
-      return MENU_META_SEED;
-    },
-  });
+      this._meta.set(snap.exists() ? snap.val() as MenuMeta : MENU_META_SEED);
+    } finally {
+      this._metaLoading.set(false);
+    }
+  }
 
-  get menu(): MenuData | undefined { return this.menuResource.value(); }
-  get meta(): MenuMeta | undefined { return this.metaResource.value(); }
+  get menu(): MenuData | undefined { return this._menu(); }
+  get meta(): MenuMeta | undefined { return this._meta(); }
 
   async saveCategory(key: string, cat: Omit<MenuCategory, 'items'>): Promise<void> {
     await update(ref(this.db, `menu/${key}`), { icon: cat.icon, title: cat.title, sub: cat.sub, order: cat.order });
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   async saveItem(catKey: string, item: MenuItem): Promise<void> {
     await set(ref(this.db, `menu/${catKey}/items/${item.id}`), item);
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   async deleteItem(catKey: string, itemId: number): Promise<void> {
     await remove(ref(this.db, `menu/${catKey}/items/${itemId}`));
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   async deleteCategory(key: string): Promise<void> {
     await remove(ref(this.db, `menu/${key}`));
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   async addCategory(key: string, cat: MenuCategory): Promise<void> {
     await set(ref(this.db, `menu/${key}`), cat);
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   async resetToDefaults(): Promise<void> {
     await set(ref(this.db, 'menu'), MENU_SEED);
     await set(ref(this.db, 'menuMeta'), MENU_META_SEED);
-    this.menuResource.reload();
-    this.metaResource.reload();
+    await Promise.all([this.loadMenu(), this.loadMeta()]);
   }
 
   async importMenu(data: MenuData): Promise<void> {
     await set(ref(this.db, 'menu'), data);
-    this.menuResource.reload();
+    await this.loadMenu();
   }
 
   nextItemId(): number {

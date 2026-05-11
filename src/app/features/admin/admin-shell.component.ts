@@ -203,7 +203,7 @@ export class AdminShellComponent {
       }
     } else {
       // keep existing
-      const existing = this.activeCatData()?.items[id];
+      const existing = this.activeCatData()?.items?.[id];
       imageUrl = existing?.imageUrl;
     }
 
