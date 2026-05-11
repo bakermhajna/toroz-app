@@ -198,6 +198,11 @@ export class AdminShellComponent {
       this.uploading.set(true);
       try {
         imageUrl = await this.storageSvc.uploadItemImage(targetCat, id, file);
+      } catch (err: unknown) {
+        this.uploading.set(false);
+        const msg = err instanceof Error ? err.message : String(err);
+        this.toast().show(`שגיאה בהעלאת תמונה: ${msg}`, 'danger');
+        return;
       } finally {
         this.uploading.set(false);
       }
