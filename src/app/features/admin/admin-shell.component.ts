@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, inject, signal, computed, viewChild,
+  Component, ChangeDetectionStrategy, inject, signal, computed, viewChild, ElementRef,
 } from '@angular/core';
 import { MenuService } from '../../core/services/menu.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -131,6 +131,11 @@ export class AdminShellComponent {
   readonly imagePreview = signal<string | null>(null);
   readonly imageFile = signal<File | null>(null);
   readonly uploading = signal(false);
+  private imageInput = viewChild<ElementRef<HTMLInputElement>>('imageInput');
+
+  triggerImagePick(): void {
+    this.imageInput()?.nativeElement.click();
+  }
 
   openItemModal(id?: number): void {
     const cat = this.activeCatData();

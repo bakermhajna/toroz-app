@@ -135,7 +135,7 @@
 
         <!-- Image upload -->
         <div class="image-upload-row">
-          <div class="image-preview" (click)="imageInput.click()">
+          <div class="image-preview" (click)="triggerImagePick()">
             @if (imagePreview()) {
               <img [src]="imagePreview()!" alt="תמונת מנה"/>
             } @else {
@@ -143,7 +143,7 @@
             }
           </div>
           <input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
-          <button class="btn sm" (click)="imageInput.click()">{{ imagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
+          <button class="btn sm" (click)="triggerImagePick()">{{ imagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
         </div>
 
         <div class="field">
