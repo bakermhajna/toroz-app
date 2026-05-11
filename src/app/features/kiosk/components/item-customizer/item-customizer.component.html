@@ -5,7 +5,11 @@
         <div class="cust-name">{{ item().name }}</div>
         <div class="cust-desc">{{ item().desc }}</div>
       </div>
-      <button class="x-btn" (click)="closed.emit()">×</button>
+      <button class="x-btn" (click)="closed.emit()" aria-label="סגור">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+        </svg>
+      </button>
     </div>
 
     <div class="cust-body">
@@ -82,7 +86,7 @@
 
       <!-- Item-specific extras -->
       @if (item().hasExtras && item().extras?.length) {
-        <div class="section-title">תוספות (+₪5)</div>
+        <div class="section-title">תוספות למנה (+₪5)</div>
         <div class="chips">
           @for (e of item().extras!; track $index) {
             <button class="chip" [class.active]="sel().extras.includes($index)" (click)="toggleExtra($index)">{{ e.label }}</button>
@@ -92,7 +96,7 @@
 
       <!-- Global extras -->
       @if (item().hasExtras) {
-        <div class="section-title">תוספות כלליות (+₪5)</div>
+        <div class="section-title">תוספות נוספות (+₪5)</div>
         <div class="chips">
           @for (e of effectiveMeta.extras; track $index) {
             <button class="chip" [class.active]="sel().globalExtras.includes($index)" (click)="toggleGlobalExtra($index)">{{ e.label }}</button>

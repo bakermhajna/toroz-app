@@ -1,14 +1,18 @@
 <div class="drawer-bg" (click)="onBackdrop($event)">
   <div class="drawer">
     <div class="drawer-head">
-      <h3>הסל שלי</h3>
-      <button class="x-btn" (click)="closed.emit()">×</button>
+      <h3>ההזמנה שלי</h3>
+      <button class="x-btn" (click)="closed.emit()" aria-label="סגור">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+          <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+        </svg>
+      </button>
     </div>
 
     <div class="drawer-body">
       @if (cart().length === 0) {
         <div class="empty">
-          <span class="e-ico">🛒</span>
+          <lucide-icon name="shopping-bag" [size]="56" [strokeWidth]="1" color="currentColor" class="e-ico"/>
           <h3>הסל ריק</h3>
           <p>הוסף מנות מהתפריט</p>
         </div>
@@ -23,7 +27,11 @@
             </div>
             <div class="line-right">
               <div class="line-price">₪{{ item.unitPrice * item.qty }}</div>
-              <button class="remove-btn" (click)="removed.emit(item.id)">✕</button>
+              <button class="remove-btn" (click)="removed.emit(item.id)" aria-label="הסר פריט">
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                  <line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/>
+                </svg>
+              </button>
             </div>
           </div>
         }
@@ -36,7 +44,7 @@
         <span class="total-amt">₪{{ total() }}</span>
       </div>
       <button class="btn gold checkout-btn" [disabled]="cart().length === 0" (click)="checkout.emit()">
-        לתשלום →
+        ← לתשלום
       </button>
     </div>
   </div>
