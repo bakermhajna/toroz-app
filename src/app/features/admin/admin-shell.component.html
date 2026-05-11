@@ -142,7 +142,6 @@
               <div class="no-img">📷<span>העלה תמונה</span></div>
             }
           </div>
-          <input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
           <button class="btn sm" (click)="triggerImagePick()">{{ imagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
         </div>
 
@@ -265,6 +264,9 @@
     </div>
   </div>
 }
+
+<!-- always in DOM so viewChild always resolves -->
+<input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
 
 <app-toast #toast/>
 <app-confirm-dialog #confirm/>
