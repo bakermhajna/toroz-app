@@ -120,16 +120,22 @@ export class KitchenComponent implements OnInit, OnDestroy {
   toggleSound(): void {
     this.soundOn.update(v => !v);
     localStorage.setItem('toroz_kitchen_sound', this.soundOn() ? '1' : '0');
+    // Create/resume AudioContext on the user gesture so Chrome allows it later
+    if (this.soundOn()) {
+      this.audioCtx ??= new AudioContext();
+      this.audioCtx.resume();
+    }
   }
 
   itemCount(order: Order): number {
     return (order.items ?? []).reduce((s, i) => s + i.qty, 0);
   }
 
-  private ding(): void {
+  private async ding(): Promise<void> {
     if (!this.soundOn()) return;
     try {
       this.audioCtx ??= new AudioContext();
+      if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
       const now = this.audioCtx.currentTime;
       [880, 1320].forEach((freq, i) => {
         const osc = this.audioCtx!.createOscillator();
