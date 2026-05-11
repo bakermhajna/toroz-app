@@ -84,7 +84,11 @@
       <div class="cat-grid">
         @for (entry of sortedCategories; track entry[0]) {
           <button class="cat-card" (click)="openCategory(entry[0])">
-            <span class="cat-icon">{{ entry[1].icon }}</span>
+            @if (entry[1].imageUrl) {
+              <img class="cat-img" [src]="entry[1].imageUrl" [alt]="entry[1].title" loading="lazy"/>
+            } @else {
+              <span class="cat-icon">{{ entry[1].icon }}</span>
+            }
             <span class="cat-name">{{ entry[1].title }}</span>
             <span class="cat-sub">{{ entry[1].sub }}</span>
           </button>

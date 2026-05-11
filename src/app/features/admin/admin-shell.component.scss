@@ -65,6 +65,7 @@
   &.active { background: linear-gradient(180deg,rgba(200,150,46,.18),rgba(200,150,46,.08)); border: 1px solid var(--border-strong); .cat-name { color: var(--gold); } }
 }
 .cat-icon { font-size: 1.35rem; line-height: 1; }
+.cat-thumb { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 .cat-info { flex: 1; min-width: 0; }
 .cat-name { font-weight: 700; font-size: .92rem; }
 .cat-sub  { font-size: .68rem; color: var(--muted); margin-top: 1px; }

@@ -135,7 +135,9 @@ export class MenuService {
   get meta(): MenuMeta | undefined { return this._meta(); }
 
   async saveCategory(key: string, cat: Omit<MenuCategory, 'items'>): Promise<void> {
-    await update(ref(this.db, `menu/${key}`), { icon: cat.icon, title: cat.title, sub: cat.sub, order: cat.order });
+    const payload: Record<string, unknown> = { icon: cat.icon, title: cat.title, sub: cat.sub, order: cat.order };
+    if (cat.imageUrl) payload['imageUrl'] = cat.imageUrl;
+    await update(ref(this.db, `menu/${key}`), payload);
     await this.loadMenu();
   }
 

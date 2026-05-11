@@ -90,8 +90,27 @@ export class AdminShellComponent {
   readonly cfTitle = signal('');
   readonly cfIcon = signal('');
   readonly cfSub = signal('');
+  readonly cfImagePreview = signal<string | null>(null);
+  readonly cfImageFile = signal<File | null>(null);
+  readonly cfUploading = signal(false);
+  private catImageInput = viewChild<ElementRef<HTMLInputElement>>('catImageInput');
 
-  openCatModal(): void { this.cfTitle.set(''); this.cfIcon.set(''); this.cfSub.set(''); this.catModalOpen.set(true); }
+  triggerCatImagePick(): void { this.catImageInput()?.nativeElement.click(); }
+
+  onCatImagePicked(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.cfImageFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => this.cfImagePreview.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  openCatModal(): void {
+    this.cfTitle.set(''); this.cfIcon.set(''); this.cfSub.set('');
+    this.cfImagePreview.set(null); this.cfImageFile.set(null);
+    this.catModalOpen.set(true);
+  }
   closeCatModal(): void { this.catModalOpen.set(false); }
 
   async saveCat(): Promise<void> {
@@ -103,7 +122,25 @@ export class AdminShellComponent {
     const m = this.menuSvc.menuResource.value() ?? {};
     let unique = key, n = 2;
     while (m[unique]) unique = key + n++;
-    const newCat: MenuCategory = { icon, title, sub, order: this.sortedCats().length, items: {} };
+
+    let imageUrl: string | undefined;
+    const file = this.cfImageFile();
+    if (file) {
+      this.cfUploading.set(true);
+      try {
+        imageUrl = await this.storageSvc.uploadCategoryImage(unique, file);
+      } catch (err: unknown) {
+        this.cfUploading.set(false);
+        this.toast().show(`שגיאה בהעלאת תמונה: ${err instanceof Error ? err.message : String(err)}`, 'danger');
+        return;
+      } finally { this.cfUploading.set(false); }
+    }
+
+    const newCat: MenuCategory = {
+      icon, title, sub, order: this.sortedCats().length,
+      ...(imageUrl ? { imageUrl } : {}),
+      items: {},
+    };
     await this.menuSvc.addCategory(unique, newCat);
     this.activeCat.set(unique);
     this.closeCatModal();

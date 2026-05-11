@@ -46,7 +46,11 @@
           }
           @for (entry of sortedCats(); track entry[0]) {
             <div class="cat-row" [class.active]="activeCat() === entry[0]" (click)="selectCat(entry[0])">
-              <span class="cat-icon">{{ entry[1].icon }}</span>
+              @if (entry[1].imageUrl) {
+                <img class="cat-thumb" [src]="entry[1].imageUrl" [alt]="entry[1].title"/>
+              } @else {
+                <span class="cat-icon">{{ entry[1].icon }}</span>
+              }
               <div class="cat-info">
                 <div class="cat-name">{{ entry[1].title }}</div>
                 <div class="cat-sub">{{ entry[1].sub }}</div>
@@ -239,6 +243,16 @@
         <button class="x-btn" (click)="closeCatModal()">×</button>
       </div>
       <div class="modal-b">
+        <div class="image-upload-row">
+          <div class="image-preview" (click)="triggerCatImagePick()">
+            @if (cfImagePreview()) {
+              <img [src]="cfImagePreview()!" alt="תמונת קטגוריה"/>
+            } @else {
+              <div class="no-img">📷<span>העלה תמונה</span></div>
+            }
+          </div>
+          <button class="btn sm" (click)="triggerCatImagePick()">{{ cfImagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
+        </div>
         <div class="row2">
           <div class="field">
             <label>שם</label>
@@ -258,7 +272,9 @@
         <div></div>
         <div class="modal-f-right">
           <button class="btn" (click)="closeCatModal()">ביטול</button>
-          <button class="btn gold" (click)="saveCat()">שמור</button>
+          <button class="btn gold" [disabled]="cfUploading()" (click)="saveCat()">
+            {{ cfUploading() ? 'מעלה...' : 'שמור' }}
+          </button>
         </div>
       </div>
     </div>
@@ -267,6 +283,7 @@
 
 <!-- always in DOM so viewChild always resolves -->
 <input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
+<input #catImageInput type="file" accept="image/*" style="display:none" (change)="onCatImagePicked($event)"/>
 
 <app-toast #toast/>
 <app-confirm-dialog #confirm/>
