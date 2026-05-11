@@ -70,7 +70,7 @@
   border-radius: 16px; display: flex; flex-direction: column;
   box-shadow: 0 6px 24px rgba(0,0,0,.3);
   animation: cardIn .3s ease-out;
-  align-self: start; position: relative;
+  align-self: start; position: relative; overflow: hidden;
 
   &.new {
     border-color: var(--amber);
@@ -177,7 +177,12 @@
   border-top: 1px solid var(--border); padding: 9px 11px;
   display: flex; gap: 7px; background: rgba(0,0,0,.12);
   border-radius: 0 0 16px 16px;
-  .btn { flex: 1; justify-content: center; padding: 10px; font-size: .86rem; }
+  .btn {
+    display: flex; flex: 1; min-width: 0;
+    justify-content: center; align-items: center;
+    padding: 10px; font-size: .86rem;
+    width: 0; /* force flex-basis to win over content size */
+  }
 }
 
 @media (max-width: 700px) {

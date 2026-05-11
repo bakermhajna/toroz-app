@@ -42,7 +42,7 @@ export interface MenuCategory {
   title: string;
   sub: string;
   order: number;
-  items: Record<number, MenuItem>;
+  items: Record<number, MenuItem> | null;
 }
 
 export type MenuData = Record<string, MenuCategory>;

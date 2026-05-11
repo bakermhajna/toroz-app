@@ -3,7 +3,7 @@ export type OrderStatus = 'new' | 'preparing' | 'ready' | 'done';
 export interface OrderItem {
   name: string;
   qty: number;
-  details: string[];
+  details: string[] | null;
 }
 
 export interface Order {
@@ -18,7 +18,7 @@ export interface Order {
   updatedAt?: number;
   total: number;
   note?: string;
-  items: OrderItem[];
+  items: OrderItem[] | null;
   lineDone?: Record<number, boolean>;
 }
 

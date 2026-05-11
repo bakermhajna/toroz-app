@@ -39,18 +39,17 @@
   align-items: center; justify-content: center;
   text-align: center; padding: 40px 24px;
 }
-.logo-circle {
-  width: min(260px, 60vw); height: min(260px, 60vw);
+.logo-img {
+  width: min(280px, 65vw);
+  height: min(280px, 65vw);
+  object-fit: cover;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, var(--gold2), var(--gold) 50%, #6b4d18);
-  display: flex; align-items: center; justify-content: center;
-  font-size: clamp(3rem, 10vw, 5rem); font-weight: 900; color: var(--dark);
-  box-shadow: 0 0 60px rgba(200,150,46,.3), 0 0 120px rgba(200,150,46,.1);
+  box-shadow: 0 0 60px rgba(200,150,46,.4), 0 0 120px rgba(200,150,46,.15);
   animation: logoPulse 3s ease-in-out infinite;
 }
 @keyframes logoPulse {
-  0%, 100% { box-shadow: 0 0 60px rgba(200,150,46,.3), 0 0 120px rgba(200,150,46,.1); }
-  50%       { box-shadow: 0 0 80px rgba(200,150,46,.5), 0 0 150px rgba(200,150,46,.2); }
+  0%, 100% { box-shadow: 0 0 60px rgba(200,150,46,.4), 0 0 120px rgba(200,150,46,.15); }
+  50%       { box-shadow: 0 0 80px rgba(200,150,46,.6), 0 0 150px rgba(200,150,46,.25); }
 }
 .welcome-title {
   margin-top: 28px; font-size: clamp(1.2rem, 4vw, 2rem);

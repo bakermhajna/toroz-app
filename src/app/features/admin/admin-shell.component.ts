@@ -140,7 +140,7 @@ export class AdminShellComponent {
     this.imageFile.set(null);
 
     if (id != null) {
-      const item = cat?.items[id];
+      const item = cat?.items?.[id];
       if (!item) return;
       this.fName.set(item.name);
       this.fDesc.set(item.desc ?? '');
@@ -228,7 +228,7 @@ export class AdminShellComponent {
   }
 
   deleteItem(id: number): void {
-    const item = this.activeCatData()?.items[id];
+    const item = this.activeCatData()?.items?.[id];
     if (!item) return;
     this.confirm().ask(`למחוק את "${item.name}"?`, async () => {
       const catKey = this.activeCat()!;

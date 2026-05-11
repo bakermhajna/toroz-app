@@ -9,6 +9,7 @@ import { ToastComponent } from '../../shared/components/toast/toast.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ItemCustomizerComponent } from './components/item-customizer/item-customizer.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
+import { BrandMarkComponent } from '../../shared/components/brand-mark/brand-mark.component';
 
 export type KioskScreen = 'welcome' | 'dine' | 'customer' | 'category' | 'menu' | 'payment' | 'confirmation';
 
@@ -17,7 +18,7 @@ const RESTAURANT_PHONE = '972527558858';
 @Component({
   selector: 'app-kiosk-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ToastComponent, ConfirmDialogComponent, ItemCustomizerComponent, CartDrawerComponent],
+  imports: [ToastComponent, ConfirmDialogComponent, ItemCustomizerComponent, CartDrawerComponent, BrandMarkComponent],
   templateUrl: './kiosk-shell.component.html',
   styleUrl: './kiosk-shell.component.scss',
 })
@@ -86,14 +87,16 @@ export class KioskShellComponent implements OnInit {
   }
 
   submitCustomer(): void {
-    if (!this.customerName().trim() && !this.customerPhone().trim()) {
-      this.screen.set('category');
+    if (!this.customerName().trim()) {
+      this.showToast('יש להזין שם', 'danger');
+      return;
+    }
+    if (!this.customerPhone().trim()) {
+      this.showToast('יש להזין מספר טלפון', 'danger');
       return;
     }
     this.screen.set('category');
   }
-
-  skipCustomer(): void { this.screen.set('category'); }
 
   openCategory(key: string): void {
     this.currentCat.set(key);

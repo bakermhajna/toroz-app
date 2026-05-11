@@ -123,7 +123,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   itemCount(order: Order): number {
-    return order.items.reduce((s, i) => s + i.qty, 0);
+    return (order.items ?? []).reduce((s, i) => s + i.qty, 0);
   }
 
   private ding(): void {

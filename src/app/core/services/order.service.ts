@@ -55,7 +55,20 @@ export class OrderService implements OnDestroy {
       await this.moveToDone(id);
       return;
     }
+    const isDone = this.doneOrders().some(o => o.id === id);
+    if (isDone) {
+      await this.moveToActive(id, status);
+      return;
+    }
     await update(ref(this.db, `todayOrders/${id}`), { status, updatedAt: Date.now() });
+  }
+
+  private async moveToActive(id: string, status: OrderStatus): Promise<void> {
+    const order = this.doneOrders().find(o => o.id === id);
+    if (!order) return;
+    const { id: _, ...data } = order;
+    await set(ref(this.db, `todayOrders/${id}`), stripUndefined({ ...data, status, updatedAt: Date.now() }));
+    await remove(ref(this.db, `doneOrders/${id}`));
   }
 
   async toggleLineDone(id: string, idx: number, value: boolean): Promise<void> {

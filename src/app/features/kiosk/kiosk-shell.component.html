@@ -2,7 +2,7 @@
 @if (screen() === 'welcome') {
   <div class="screen welcome-screen">
     <div class="welcome-top">
-      <div class="logo-circle">T</div>
+      <img class="logo-img" src="Toroz.jpg" alt="TOROZ MEAT"/>
       <div class="welcome-title">ברוכים הבאים<span>טורוז מיט</span></div>
       <div class="welcome-sub">TOROZ MEAT — המטבח שלנו, הטעם שלכם</div>
       <button class="start-btn" (click)="goToDine()">הזמן עכשיו</button>
@@ -15,7 +15,7 @@
 @if (screen() === 'dine') {
   <div class="screen dine-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="goToWelcome()">← חזרה</button>
+      <button class="back-btn" (click)="goToWelcome()">חזרה →</button>
       <h2>איך תרצו לאכול?</h2>
       <div class="dine-options">
         <button class="dine-btn" (click)="selectDine('here')">
@@ -35,8 +35,8 @@
 @if (screen() === 'customer') {
   <div class="screen customer-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="screen.set('dine')">← חזרה</button>
-      <h2>פרטי הלקוח <span class="opt-label">(לא חובה)</span></h2>
+      <button class="back-btn" (click)="screen.set('dine')">חזרה →</button>
+      <h2>פרטי הלקוח</h2>
       <div class="field">
         <label>שם</label>
         <input type="text" [value]="customerName()" (input)="customerName.set($any($event.target).value)" placeholder="שמך הפרטי"/>
@@ -47,7 +47,6 @@
       </div>
       <div class="cust-actions">
         <button class="btn gold" (click)="submitCustomer()">המשך →</button>
-        <button class="btn ghost" (click)="skipCustomer()">דלג</button>
       </div>
     </div>
   </div>
@@ -57,7 +56,8 @@
 @if (screen() === 'category') {
   <div class="screen category-screen">
     <div class="cat-topbar">
-      <button class="back-btn" (click)="screen.set('customer')">← חזרה</button>
+      <button class="back-btn" (click)="screen.set('customer')">חזרה →</button>
+      <app-brand-mark [size]="40"/>
       <div class="cart-btn-wrap">
         @if (cartCount() > 0) {
           <button class="cart-btn" (click)="cartOpen.set(true)">
@@ -86,7 +86,8 @@
 @if (screen() === 'menu') {
   <div class="screen menu-screen">
     <div class="menu-topbar">
-      <button class="back-btn" (click)="goToCategories()">← חזרה</button>
+      <button class="back-btn" (click)="goToCategories()">חזרה →</button>
+      <app-brand-mark [size]="40"/>
       <div class="menu-title">
         <span>{{ currentCatData?.icon }}</span>
         <span>{{ currentCatData?.title }}</span>
@@ -120,7 +121,7 @@
 @if (screen() === 'payment') {
   <div class="screen payment-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="screen.set('menu')">← חזרה</button>
+      <button class="back-btn" (click)="screen.set('menu')">חזרה →</button>
       <h2>בחר אמצעי תשלום</h2>
       <div class="payment-total">לתשלום: <strong>₪{{ cartTotal() }}</strong></div>
       <div class="payment-options">
