@@ -18,7 +18,7 @@
 @if (screen() === 'dine') {
   <div class="screen dine-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="goToWelcome()" aria-label="חזרה">← חזרה</button>
+      <button class="back-btn" (click)="goToWelcome()" aria-label="חזרה">→ חזרה</button>
       <h2>איך תרצו לאכול?</h2>
       <div class="dine-options">
         <button class="dine-btn" (click)="selectDine('here')">
@@ -38,7 +38,7 @@
 @if (screen() === 'customer') {
   <div class="screen customer-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="screen.set('dine')" aria-label="חזרה">← חזרה</button>
+      <button class="back-btn" (click)="screen.set('dine')" aria-label="חזרה">→ חזרה</button>
       <h2>פרטי הלקוח</h2>
       <div class="field" [class.has-error]="nameError()">
         <label>שם</label>
@@ -65,7 +65,7 @@
 @if (screen() === 'category') {
   <div class="screen category-screen">
     <div class="cat-topbar">
-      <button class="back-btn" (click)="screen.set('customer')" aria-label="חזרה">← חזרה</button>
+      <button class="back-btn" (click)="screen.set('customer')" aria-label="חזרה">→ חזרה</button>
       <app-brand-mark [size]="40"/>
       <div class="cart-btn-wrap">
         @if (cartCount() > 0) {
@@ -102,7 +102,7 @@
 @if (screen() === 'menu') {
   <div class="screen menu-screen">
     <div class="menu-topbar">
-      <button class="back-btn" (click)="goToCategories()" aria-label="חזרה">← חזרה</button>
+      <button class="back-btn" (click)="goToCategories()" aria-label="חזרה">→ חזרה</button>
       <app-brand-mark [size]="40"/>
       <div class="menu-title">
         <span>{{ currentCatData?.icon }}</span>
@@ -138,7 +138,7 @@
 @if (screen() === 'payment') {
   <div class="screen payment-screen">
     <div class="screen-inner">
-      <button class="back-btn" (click)="screen.set('menu')" aria-label="חזרה">← חזרה</button>
+      <button class="back-btn" (click)="screen.set('menu')" aria-label="חזרה">→ חזרה</button>
       <h2>בחר אמצעי תשלום</h2>
       <div class="payment-total">לתשלום: <strong>₪{{ cartTotal() }}</strong></div>
       <div class="payment-options">
@@ -196,6 +196,7 @@
   <app-item-customizer
     [item]="customizerItem()!"
     [meta]="meta"
+    [noCustomization]="currentCatData?.noCustomization ?? false"
     (added)="onItemAdded($event)"
     (closed)="closeCustomizer()"
   />

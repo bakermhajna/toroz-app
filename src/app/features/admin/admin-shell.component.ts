@@ -58,6 +58,10 @@ export class AdminShellComponent {
     return m && k ? (m[k] ?? null) : null;
   });
 
+  readonly fTargetCatNoCustomization = computed(() =>
+    this.menuSvc.menuResource.value()?.[this.fTargetCat()]?.noCustomization ?? false
+  );
+
   readonly filteredItems = computed((): MenuItem[] => {
     const cat = this.activeCatData();
     if (!cat) return [];
@@ -69,6 +73,11 @@ export class AdminShellComponent {
   selectCat(key: string): void {
     this.activeCat.set(key);
     this.searchQ.set('');
+  }
+
+  async toggleCatCustomization(key: string): Promise<void> {
+    const enabled = await this.menuSvc.toggleCategoryCustomization(key);
+    this.toast().show(enabled ? 'אפשרויות התאמה בוטלו' : 'אפשרויות התאמה הופעלו', 'success');
   }
 
   deleteCat(key: string): void {

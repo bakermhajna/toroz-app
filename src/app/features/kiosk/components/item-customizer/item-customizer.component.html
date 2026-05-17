@@ -14,6 +14,8 @@
 
     <div class="cust-body">
 
+      @if (!noCustomization()) {
+
       <!-- Burger sizes -->
       @if (item().hasBurgerSize && item().burgerSizes) {
         <div class="section-title">מידת קציצה</div>
@@ -113,6 +115,8 @@
           }
         </div>
       }
+
+      } <!-- end @if (!noCustomization()) -->
 
     </div>
 

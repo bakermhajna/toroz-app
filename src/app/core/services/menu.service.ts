@@ -115,7 +115,12 @@ export class MenuService {
     this._menuLoading.set(true);
     try {
       const snap = await get(ref(this.db, 'menu'));
-      this._menu.set(snap.exists() ? snap.val() as MenuData : MENU_SEED);
+      if (snap.exists()) {
+        this._menu.set(snap.val() as MenuData);
+      } else {
+        await set(ref(this.db, 'menu'), MENU_SEED);
+        this._menu.set(MENU_SEED);
+      }
     } finally {
       this._menuLoading.set(false);
     }
@@ -154,6 +159,22 @@ export class MenuService {
   async deleteCategory(key: string): Promise<void> {
     await remove(ref(this.db, `menu/${key}`));
     await this.loadMenu();
+  }
+
+  async toggleCategoryCustomization(key: string): Promise<boolean> {
+    const menu = this._menu();
+    const cat = menu?.[key];
+    if (!cat) return false;
+    const enabling = !(cat.noCustomization ?? false);
+    if (enabling) {
+      await update(ref(this.db, `menu/${key}`), { noCustomization: true });
+      this._menu.set({ ...menu!, [key]: { ...cat, noCustomization: true } });
+    } else {
+      await remove(ref(this.db, `menu/${key}/noCustomization`));
+      const { noCustomization: _, ...rest } = cat;
+      this._menu.set({ ...menu!, [key]: rest as MenuCategory });
+    }
+    return enabling;
   }
 
   async addCategory(key: string, cat: MenuCategory): Promise<void> {

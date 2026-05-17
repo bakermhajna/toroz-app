@@ -12,6 +12,7 @@ import { MENU_META_SEED } from '../../../../core/services/menu.service';
 export class ItemCustomizerComponent implements OnInit {
   readonly item = input.required<MenuItem>();
   readonly meta = input<MenuMeta | undefined>(undefined);
+  readonly noCustomization = input<boolean>(false);
   readonly added = output<CartItem>();
   readonly closed = output<void>();
 

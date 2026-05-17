@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8"/>
+<title>Toroz · Design Review</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Heebo:wght@300;400;500;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --brown:#1E1208;
+    --brown-2:#271508;
+    --card:#321A08;
+    --dark:#120B04;
+    --gold:#C8962E;
+    --gold-2:#F0D080;
+    --cream:#F2E8CC;
+    --red:#C9362C;       /* sampled from logo */
+    --red-soft:#E0594F;
+    --muted:rgba(242,232,204,.62);
+    --border:rgba(200,150,46,.22);
+    --border-strong:rgba(200,150,46,.5);
+    --good:#4CAF72;
+    --warn:#E8A23A;
+    --bad:#C44545;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--brown);color:var(--cream);font-family:'Heebo',sans-serif;-webkit-font-smoothing:antialiased;line-height:1.55}
+  body{
+    background:
+      radial-gradient(1100px 600px at 85% -10%, rgba(200,150,46,.10), transparent 60%),
+      radial-gradient(900px 600px at 5% 110%, rgba(201,54,44,.08), transparent 55%),
+      var(--brown);
+    min-height:100vh;
+    padding:48px 24px 96px;
+  }
+
+  .wrap{max-width:1100px;margin:0 auto}
+
+  /* ── HERO ── */
+  .hero{
+    display:grid;grid-template-columns:auto 1fr auto;gap:36px;align-items:center;
+    padding:36px 40px;
+    background:linear-gradient(180deg,rgba(0,0,0,.35),rgba(0,0,0,.15));
+    border:1px solid var(--border);
+    border-radius:24px;
+    position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;
+    background:
+      repeating-linear-gradient(45deg, rgba(200,150,46,.04) 0 2px, transparent 2px 14px);
+    pointer-events:none;
+  }
+  .hero-logo{
+    width:130px;height:130px;border-radius:18px;object-fit:cover;
+    box-shadow:0 8px 30px rgba(0,0,0,.5);
+    border:1px solid var(--border-strong);
+  }
+  .hero h1{
+    font-family:'DM Serif Display',serif;font-weight:400;
+    font-size:clamp(2.2rem,5vw,3.6rem);line-height:.95;letter-spacing:-.01em;
+    color:var(--cream);
+  }
+  .hero h1 em{
+    font-style:italic;color:var(--red-soft);
+  }
+  .hero-kicker{
+    display:inline-block;
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--gold);background:rgba(200,150,46,.1);
+    padding:5px 12px;border-radius:999px;border:1px solid var(--border);
+    margin-bottom:14px;
+  }
+  .hero-sub{margin-top:12px;color:var(--muted);max-width:46ch;font-size:.98rem}
+  .hero-meta{
+    display:flex;flex-direction:column;gap:6px;align-items:flex-end;text-align:left;
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--muted);
+    letter-spacing:.08em;text-transform:uppercase;direction:ltr;
+  }
+  .hero-meta b{color:var(--gold);font-weight:600}
+
+  /* ── TOC / Summary ── */
+  .summary{
+    margin-top:28px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;
+  }
+  .stat{
+    border:1px solid var(--border);border-radius:14px;padding:16px 18px;
+    background:linear-gradient(180deg,rgba(0,0,0,.25),transparent);
+  }
+  .stat .n{font-family:'DM Serif Display',serif;font-size:2.2rem;line-height:1;color:var(--gold)}
+  .stat.bad .n{color:var(--red-soft)}
+  .stat.warn .n{color:var(--warn)}
+  .stat.good .n{color:var(--good)}
+  .stat .l{font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+
+  /* ── Section headings ── */
+  section{margin-top:64px}
+  .sec-h{
+    display:flex;align-items:baseline;gap:14px;
+    border-top:1px solid var(--border);
+    padding-top:28px;margin-bottom:22px;
+  }
+  .sec-num{
+    font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.28em;
+    color:var(--gold);direction:ltr;
+  }
+  .sec-h h2{
+    font-family:'DM Serif Display',serif;font-weight:400;font-size:2.2rem;
+    color:var(--cream);letter-spacing:-.01em;line-height:1.1;
+  }
+  .sec-sub{color:var(--muted);font-size:1rem;max-width:62ch;margin-bottom:24px}
+
+  /* ── Issue card ── */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .grid.one{grid-template-columns:1fr}
+  .issue{
+    border:1px solid var(--border);border-radius:16px;padding:22px;
+    background:linear-gradient(180deg,rgba(0,0,0,.22),transparent);
+    position:relative;
+  }
+  .issue::before{
+    content:"";position:absolute;inset-inline-start:0;top:18px;bottom:18px;
+    width:3px;border-radius:2px;background:var(--gold);
+  }
+  .issue.bad::before{background:var(--red)}
+  .issue.warn::before{background:var(--warn)}
+  .issue.idea::before{background:var(--gold-2)}
+  .issue.good::before{background:var(--good)}
+  .issue{padding-inline-start:30px}
+
+  .tag{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:'JetBrains Mono',monospace;font-size:.65rem;letter-spacing:.2em;
+    text-transform:uppercase;
+    padding:3px 9px;border-radius:999px;direction:ltr;
+    border:1px solid var(--border);color:var(--muted);
+  }
+  .tag.bad{color:var(--red-soft);border-color:rgba(201,54,44,.45);background:rgba(201,54,44,.08)}
+  .tag.warn{color:var(--warn);border-color:rgba(232,162,58,.4);background:rgba(232,162,58,.08)}
+  .tag.idea{color:var(--gold);border-color:var(--border-strong);background:rgba(200,150,46,.08)}
+  .tag.good{color:var(--good);border-color:rgba(76,175,114,.4);background:rgba(76,175,114,.08)}
+
+  .issue h3{
+    font-family:'Heebo',sans-serif;font-weight:800;font-size:1.15rem;
+    margin:10px 0 8px;color:var(--cream);
+  }
+  .issue p{color:var(--muted);font-size:.95rem}
+  .issue p + p{margin-top:8px}
+  .issue p b{color:var(--cream);font-weight:700}
+
+  .file{
+    font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--gold);
+    background:rgba(200,150,46,.08);padding:1px 7px;border-radius:5px;direction:ltr;display:inline-block;
+  }
+  code{
+    font-family:'JetBrains Mono',monospace;font-size:.82rem;color:var(--cream);
+    background:rgba(0,0,0,.35);padding:1px 7px;border-radius:5px;direction:ltr;display:inline-block;
+    border:1px solid rgba(255,255,255,.05);
+  }
+
+  pre{
+    margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:.78rem;
+    background:#0c0703;border:1px solid var(--border);border-radius:10px;
+    padding:14px 16px;overflow-x:auto;direction:ltr;color:var(--cream);line-height:1.7;
+  }
+  pre .c{color:rgba(242,232,204,.4)}
+  pre .k{color:var(--red-soft)}
+  pre .s{color:var(--gold-2)}
+  pre .v{color:var(--good)}
+
+  /* ── Side-by-side ── */
+  .compare{
+    display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px;
+  }
+  .ex{
+    border:1px dashed var(--border-strong);border-radius:10px;padding:14px;
+    background:rgba(0,0,0,.2);
+  }
+  .ex .lbl{
+    font-family:'JetBrains Mono',monospace;font-size:.62rem;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:10px;direction:ltr;
+  }
+  .ex.before .lbl{color:var(--red-soft)}
+  .ex.after .lbl{color:var(--good)}
+
+  /* tiny emoji-vs-icon demo */
+  .demo-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .demo-pill{
+    display:inline-flex;align-items:center;gap:8px;
+    background:rgba(200,150,46,.08);border:1px solid var(--border);
+    padding:8px 14px;border-radius:999px;font-size:.85rem;color:var(--cream);
+  }
+  .demo-pill svg{width:18px;height:18px;stroke:var(--gold);stroke-width:1.6;fill:none}
+  .emoji{font-size:1.05rem}
+
+  /* Screen mini */
+  .screens{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px;
+  }
+  .screen-mini{
+    border:1px solid var(--border);border-radius:14px;overflow:hidden;
+    background:#1a0e05;aspect-ratio:9/16;
+    display:flex;flex-direction:column;position:relative;
+    transition:transform .2s ease,border-color .2s ease;
+  }
+  .screen-mini:hover{border-color:var(--gold);transform:translateY(-2px)}
+  .screen-mini .label{
+    padding:8px 12px;font-size:.75rem;color:var(--muted);
+    border-bottom:1px solid var(--border);background:rgba(0,0,0,.4);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .screen-mini .label b{color:var(--gold);font-weight:700}
+  .screen-mini .label .num{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--muted);direction:ltr}
+
+  /* welcome mock */
+  .mock{padding:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:10px}
+  .mock-logo{width:60%;aspect-ratio:1;border-radius:50%;background:#0c0703 center/contain no-repeat;box-shadow:0 0 22px rgba(200,150,46,.25);border:1px solid var(--border-strong)}
+  .mock-title{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--gold)}
+  .mock-sub{font-size:.6rem;color:var(--muted);letter-spacing:.1em}
+  .mock-btn{margin-top:8px;background:var(--gold);color:var(--dark);font-weight:900;font-size:.65rem;padding:8px 18px;border-radius:999px}
+
+  /* receipt mock */
+  .mock-receipt{
+    padding:10px;background:var(--card);font-family:'JetBrains Mono',monospace;font-size:.55rem;
+    line-height:1.6;color:var(--cream);text-align:right;
+  }
+
+  /* Kitchen mock */
+  .mock-kitchen{padding:8px;display:flex;flex-direction:column;gap:6px}
+  .mk-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:7px;font-size:.55rem}
+  .mk-num{color:var(--gold);font-weight:900;font-size:.7rem}
+  .mk-line{color:var(--muted);font-size:.5rem;margin-top:2px}
+
+  /* checklist */
+  .check{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+  .check li{
+    list-style:none;padding:10px 12px 10px 36px;border:1px solid var(--border);border-radius:10px;
+    background:rgba(0,0,0,.18);font-size:.92rem;color:var(--cream);position:relative;
+  }
+  .check li::before{
+    content:"";position:absolute;top:14px;inset-inline-end:14px;
+    width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border-strong);
+  }
+  .check li.must{border-color:rgba(201,54,44,.35)}
+  .check li.must::before{border-color:var(--red-soft)}
+  .check li.must::after{
+    content:"!";position:absolute;top:8px;inset-inline-end:18px;color:var(--red-soft);font-weight:900;
+  }
+  .check li small{display:block;color:var(--muted);font-size:.78rem;margin-top:2px}
+
+  /* footer */
+  footer{
+    margin-top:80px;padding-top:30px;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:.82rem;
+  }
+  footer .sig{font-family:'DM Serif Display',serif;font-style:italic;color:var(--cream);font-size:1.1rem}
+
+  @media (max-width:760px){
+    .hero{grid-template-columns:1fr;text-align:center;gap:20px}
+    .hero-meta{align-items:center}
+    .summary{grid-template-columns:repeat(2,1fr)}
+    .grid{grid-template-columns:1fr}
+    .compare{grid-template-columns:1fr}
+    .screens{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ── HERO ── -->
+  <header class="hero">
+    <img class="hero-logo" src="assets/Toroz.jpg" alt="Toroz Meat"/>
+    <div>
+      <span class="hero-kicker">Design Review · v1</span>
+      <h1>טורוז מיט — <em>ביקורת עיצוב</em></h1>
+      <p class="hero-sub">סקירה מסך־אחר־מסך של אפליקציית הקיוסק, הניהול והמטבח. מסומנות בעיות שצריך לתקן, חוסר־עקביות, ורעיונות לחיזוק המותג.</p>
+    </div>
+    <div class="hero-meta">
+      <div>Angular 21 · RTL</div>
+      <div>3 SHELLS · <b>kiosk / admin / kitchen</b></div>
+      <div>May 13, 2026</div>
+    </div>
+  </header>
+
+  <!-- ── SUMMARY ── -->
+  <div class="summary">
+    <div class="stat bad"><div class="n">3</div><div class="l">קריטי / Must fix</div></div>
+    <div class="stat warn"><div class="n">7</div><div class="l">חוסר עקביות</div></div>
+    <div class="stat"><div class="n">5</div><div class="l">שיפורי מותג</div></div>
+    <div class="stat good"><div class="n">6</div><div class="l">דברים שעובדים</div></div>
+  </div>
+
+  <!-- ══════════ SECTION 1 ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">01 / CRITICAL</div>
+      <h2>חייבים לתקן עכשיו</h2>
+    </div>
+    <p class="sec-sub">שלושה דברים שיגרמו לבעיה אמיתית בייצור — באג ויזואלי, פגיעה במותג, ובעיית אבטחה.</p>
+
+    <div class="grid">
+
+      <article class="issue bad">
+        <span class="tag bad">Bug · CSS vars</span>
+        <h3>צבעי המטבח לא מוגדרים</h3>
+        <p><span class="file">kitchen.component.scss</span> משתמש ב־<code>var(--amber)</code>, <code>var(--blue)</code>, ו־<code>var(--danger)</code> — אבל ב־<span class="file">styles.scss</span> מוגדרים רק <code>--gold</code>, <code>--green</code>, <code>--danger</code>. <b>amber ו־blue לא קיימים</b>, אז כל ה־borders של כרטיסי "חדש" ו"בהכנה" נופלים ל־initial וצובעים את ה־card בלי גבול אמיתי. גם ה־"scan animation" על כרטיסים חדשים שקופה.</p>
+<pre><span class="c">/* styles.scss — להוסיף */</span>
+<span class="k">--amber</span>: <span class="s">#E8A23A</span>;
+<span class="k">--blue</span>:  <span class="s">#4A90E2</span>;</pre>
+      </article>
+
+      <article class="issue bad">
+        <span class="tag bad">Security · UX</span>
+        <h3>קוד ה־PIN חשוף על המסך</h3>
+        <p>במסך הניהול כתוב <i>"קוד ברירת מחדל: 1234"</i> מתחת לשדה. גם אם זה רק ל־dev, זה נראה אצל כל מי שעובר ליד הקופה. הסר את ה־hint, או הסתר מאחורי build flag (<code>environment.production</code>).</p>
+        <p><b>בנוסף:</b> אם הקוד באמת 1234 בפרודקשן — תחליף. הקופה אחראית על כל התפריט והכסף.</p>
+      </article>
+
+      <article class="issue bad">
+        <span class="tag bad">RTL · Affordance</span>
+        <h3>חיצי הניווט הפוכים</h3>
+        <p>בעברית, "חזרה" צריכה להצביע <b>ימינה (→)</b> ו"המשך" <b>שמאלה (←)</b>. כרגע גם כפתור החזרה וגם "המשך" משתמשים ב־<code>←</code>. המוח של הלקוח מתבלבל לרגע בכל מסך.</p>
+        <div class="compare">
+          <div class="ex before"><div class="lbl">Now</div>
+            <div style="display:flex;justify-content:space-between;direction:rtl">
+              <span>← חזרה</span><span>← המשך</span>
+            </div>
+          </div>
+          <div class="ex after"><div class="lbl">Fix</div>
+            <div style="display:flex;justify-content:space-between;direction:rtl">
+              <span>→ חזרה</span><span>המשך ←</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="issue bad">
+        <span class="tag bad">Layout · Tablet</span>
+        <h3>הקיוסק מעוצב לטלפון, לא לטאבלט</h3>
+        <p><span class="file">.screen-inner</span> מגביל ל־<code>max-width: 480px</code>. אם המכשיר בפועל הוא טאבלט 10" אנכי או iPad בעמדה — כל מסכי dine / customer / payment מצטמצמים לעמודה צרה במרכז, עם הרבה ריק משני הצדדים. צריך scale נפרד למסכי kiosk־touch (פדים גדולים יותר, טיפוגרפיה ב־1.4× לפחות).</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 2 ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">02 / CONSISTENCY</div>
+      <h2>אמוג'י vs. lucide — בחר אחד</h2>
+    </div>
+    <p class="sec-sub">זו הבעיה הכי גלויה באפליקציה. אייקונים הם השפה הוויזואלית של הממשק — וכרגע מערבבים שלוש שפות.</p>
+
+    <div class="grid one">
+      <article class="issue warn">
+        <span class="tag warn">Inconsistency</span>
+        <h3>שלוש משפחות אייקונים באותו מסך</h3>
+        <p>במסך אחד יש <span class="demo-pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg> Lucide stroke</span>, <span class="demo-pill"><span class="emoji">🪑</span> emoji צבעוני</span>, ו־<span class="demo-pill"><span class="emoji">↺</span> תו טקסטואלי</span>. כל אחד מהם מצויר ב־style אחר וזה נראה לא־גמור.</p>
+
+        <div class="compare">
+          <div class="ex before">
+            <div class="lbl">Now · mixed</div>
+            <div class="demo-row">
+              <span class="demo-pill"><span class="emoji">🪑</span> לשבת פה</span>
+              <span class="demo-pill"><span class="emoji">🥡</span> לקחת</span>
+              <span class="demo-pill"><span class="emoji">💳</span> אשראי</span>
+              <span class="demo-pill"><span class="emoji">🐂</span> Toroz</span>
+              <span class="demo-pill"><span class="emoji">📋</span> תפריט</span>
+              <span class="demo-pill"><span class="emoji">🗑</span> מחק</span>
+            </div>
+          </div>
+          <div class="ex after">
+            <div class="lbl">After · all lucide, stroke 1.5</div>
+            <div class="demo-row">
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><path d="M3 14v4M21 14v4M3 14a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2M5 12V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v4"/></svg> לשבת פה</span>
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><path d="M3 8h18M5 8l1 12h12l1-12M9 4h6v4H9z"/></svg> לקחת</span>
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 11h18"/></svg> אשראי</span>
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><path d="M4 6c1-3 4-3 4 0v3M20 6c-1-3-4-3-4 0v3M8 10c0 4 3 7 4 7s4-3 4-7"/></svg> Toroz</span>
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg> תפריט</span>
+              <span class="demo-pill"><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13"/></svg> מחק</span>
+            </div>
+          </div>
+        </div>
+
+        <p style="margin-top:12px"><b>מה לעשות:</b> אתה כבר משתמש ב־<code>lucide-angular</code>. תעבור על כל ה־templates ותחליף את ה־emoji ב־<code>&lt;lucide-icon&gt;</code> עם <code>strokeWidth=1.5</code>. במקומות שמשתמשים בקטגוריות (<code>cat.icon</code>) — תחליף את שדה ה־icon במודל ל־<code>iconName: string</code> שמצביע על lucide icon. את ה־emoji היחיד שאני <i>כן</i> הייתי משאיר זה ב־receipt עצמו (🐂 ✓) כי שם זה מרגיש כמו מסר אישי, לא UI.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 3 ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">03 / BRAND</div>
+      <h2>המותג עובד פחות ממה שהוא יכול</h2>
+    </div>
+    <p class="sec-sub">הלוגו שלך מעולה — שור אדום, סלאב־סריף, כוכבים, טאקו. באפליקציה כמעט אף אחד מהאלמנטים האלה לא מופיע.</p>
+
+    <div class="grid">
+
+      <article class="issue idea">
+        <span class="tag idea">Brand · Color</span>
+        <h3>הצבע האדום של הלוגו לא קיים בפלטה</h3>
+        <p>הלוגו הוא <b>זהב + אדום</b> על חום. האפליקציה רק <b>זהב על חום</b>. האדום חסר — וזה הצבע שעושה את הלוגו "טורוז" ולא עוד מסעדת בשרים זהובה.</p>
+        <p>הצע לעצמך accent אחד אדום (<code>#C9362C</code>) ל:</p>
+        <ul style="margin-top:8px;padding-inline-start:20px;color:var(--muted);font-size:.92rem">
+          <li>סטטוס "חדש" במטבח (במקום amber)</li>
+          <li>תג "חריף" / "פיקנטי" על מנות</li>
+          <li>תג מבצע / מוגבל בזמן</li>
+          <li>ה־cart badge כשיש מעל 5 פריטים</li>
+        </ul>
+        <p style="margin-top:8px"><b>אזהרה:</b> אל תשתמש באדום ל־danger/מחיקה — שמור על <code>#C44545</code> הקיים שכבר חי בקוד. אדום מותגי ≠ אדום פעולה הרסנית.</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Brand · Type</span>
+        <h3>הטיפוגרפיה לא מהדהדת את ה־wordmark</h3>
+        <p>"TOROZ" בלוגו זה <b>סלאב־סריף בולט</b>. באפליקציה הכל Heebo (sans). זה אומר שכשהלקוח עובר מהלוגו אל הכותרת "ברוכים הבאים" — הקול משתנה.</p>
+        <p>הוסף משפחה שנייה לכותרות ראשיות בלבד — מספרי הזמנה, שם המסעדה, כותרת מסך "ברוכים הבאים", המחיר ה־XL במסך תשלום:</p>
+<pre><span class="c">/* options that pair with the wordmark */</span>
+<span class="k">font-family</span>: <span class="s">'Frank Ruhl Libre'</span>,<span class="c"> /* Hebrew serif */</span> serif;
+<span class="k">font-family</span>: <span class="s">'DM Serif Display'</span>, serif; <span class="c">/* Latin/numerals */</span>
+<span class="k">font-family</span>: <span class="s">'Bowlby One'</span>, sans-serif; <span class="c">/* slab-like display */</span></pre>
+        <p>השאר Heebo לכל body / chips / buttons. שתי משפחות, לא שלוש.</p>
+      </article>
+
+      <article class="issue warn">
+        <span class="tag warn">Brand · Logo</span>
+        <h3>ה־brand-mark הקטן חותך את השור</h3>
+        <p><span class="file">brand-mark.component.ts</span> מציג את הלוגו בגודל 40px ב־<code>border-radius:50%</code> + <code>object-fit:cover</code>. בגודל כזה רואים רק את הפנים של השור, חותכים את הקרניים, את הכוכבים, ואת ה־wordmark "TOROZ MEAT" — בעצם רואים <b>פנים של חיה אדומה</b> ולא לוגו.</p>
+        <p><b>פתרון:</b> חתוך גרסה נפרדת של הלוגו לשימוש קטן — רק ראש השור על רקע שקוף, או רק ה־wordmark. שמור את ה־<span class="file">Toroz.jpg</span> המלאה רק למסך הפתיחה. תוכל לקרוא לזה <span class="file">toroz-mark.svg</span> + <span class="file">toroz-wordmark.svg</span>.</p>
+      </article>
+
+      <article class="issue warn">
+        <span class="tag warn">Polish</span>
+        <h3>הילה זוהבת על הלוגו (welcome) — קצת AI-slop</h3>
+        <p><code>box-shadow: 0 0 60px rgba(200,150,46,.4), 0 0 120px rgba(200,150,46,.15)</code> + עיגול מלא + <code>btnPulse</code> אינסופי על הכפתור = מרגיש כמו mockup ולא מסעדה אמיתית.</p>
+        <p>בחר אחד: או הילה רכה ולא pulse, או pulse ולא הילה. אישית — הסר את ה־glow לגמרי, השאר רק את ה־radial gradient ברקע (זה כבר עושה את העבודה), ותן ל־<code>border-radius</code> ערך של 24px במקום 50% — לוגו ריבועי עם פינות מעוגלות מרגיש יותר "brand asset" ופחות "אווטאר".</p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 4 ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">04 / SCREEN-BY-SCREEN</div>
+      <h2>הערות לפי מסך</h2>
+    </div>
+
+    <div class="screens">
+      <div class="screen-mini" title="welcome">
+        <div class="label"><b>Welcome</b><span class="num">01</span></div>
+        <div class="mock">
+          <div class="mock-logo" style="background-image:url('assets/Toroz.jpg')"></div>
+          <div class="mock-title">ברוכים הבאים</div>
+          <div class="mock-sub">TOROZ MEAT</div>
+          <div class="mock-btn">הזמן עכשיו</div>
+        </div>
+      </div>
+
+      <div class="screen-mini" title="category">
+        <div class="label"><b>Category</b><span class="num">04</span></div>
+        <div class="mock-kitchen">
+          <div class="mk-card" style="text-align:center;padding:14px 7px">
+            <div style="font-size:1.4rem">🍔</div>
+            <div class="mk-num" style="font-size:.55rem">בורגרים</div>
+          </div>
+          <div class="mk-card" style="text-align:center;padding:14px 7px">
+            <div style="font-size:1.4rem">🌮</div>
+            <div class="mk-num" style="font-size:.55rem">טאקוס</div>
+          </div>
+          <div class="mk-card" style="text-align:center;padding:14px 7px">
+            <div style="font-size:1.4rem">🥗</div>
+            <div class="mk-num" style="font-size:.55rem">סלטים</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="screen-mini" title="receipt">
+        <div class="label"><b>Receipt</b><span class="num">07</span></div>
+        <div class="mock-receipt">
+          <div style="text-align:center;color:var(--gold);font-weight:900">🐂 TOROZ MEAT</div>
+          <div style="text-align:center">הזמנה #042</div>
+          <div style="color:var(--muted)">─────────</div>
+          <div>2× טורטיה ₪80</div>
+          <div style="color:var(--muted)">&nbsp;&nbsp;ללא בצל</div>
+          <div>1× צ'יפס ₪22</div>
+          <div style="color:var(--muted)">─────────</div>
+          <div style="color:var(--gold);font-weight:900">סה"כ ₪102</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top:24px">
+
+      <article class="issue">
+        <span class="tag">Welcome</span>
+        <h3>נקודות על מסך הפתיחה</h3>
+        <p><b>טוב:</b> ההיררכיה ברורה — לוגו, כותרת, כפתור גדול, footer של "צריך עזרה? קרא למלצר".</p>
+        <p><b>לשפר:</b></p>
+        <ul style="padding-inline-start:20px;color:var(--muted);font-size:.92rem;margin-top:4px">
+          <li>"ברוכים הבאים" ב־font-weight:300 ו"טורוז מיט" ב־900 — קונטרסט גדול מאוד. תנסה <code>500/800</code> במקום.</li>
+          <li>ה־<code>sub-en</code> ב־opacity .3 כמעט לא נראה. או להעלות ל־.5 או להוריד לגמרי.</li>
+          <li>שקול attract loop — אם הקיוסק עומד 30 שניות ללא נגיעה, להחזיר לכאן + להציג מנה־של־השבוע מתחלפת.</li>
+        </ul>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Customer</span>
+        <h3>פרטי לקוח — חיכוך מיותר</h3>
+        <p>אחרי שהלקוח בחר "לשבת פה / לקחת" — מבקשים שם <i>וגם</i> טלפון. ב־dine-in אתה לא צריך טלפון. ב־takeaway אתה לא חייב שם.</p>
+        <p><b>הצעה:</b> תנאי על <code>orderType()</code>:</p>
+<pre><span class="c">// dine-in:</span>
+<span class="k">required</span>: <span class="s">none</span> <span class="c">// או רק "שם" אופציונלי לקריאה</span>
+<span class="c">// takeaway:</span>
+<span class="k">required</span>: <span class="s">phone</span>, <span class="k">optional</span>: <span class="s">name</span></pre>
+        <p>גם — אין מקלדת מותאמת. השדה <code>type="text"</code> עם <code>inputmode="tel"</code> רק לטלפון. ב־iPad זה יעבוד טוב, באנדרואיד פחות.</p>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Category</span>
+        <h3>2 עמודות = פחות מ־8 קטגוריות</h3>
+        <p>הגריד הוא <code>repeat(2, 1fr)</code>. אם יום אחד תוסיף 8 קטגוריות (משקאות, קינוחים, ילדים, ארוחות) — הלקוח גולל מסך וחצי. שקול <code>auto-fill, minmax(180px, 1fr)</code> שמתאים ל־screen size.</p>
+        <p>גם — ה־<code>cat-img</code> בגובה 120px קבוע. אם לקטגוריה אין תמונה, ה־<code>cat-icon</code> ב־3.4rem יוצא קטן בהרבה ויוצר תאים בגבהים שונים. תאחיד.</p>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Menu items</span>
+        <h3>כפתורי המנה מאבדים מידע</h3>
+        <p>ה־<code>.item-card</code> מציג <i>שם, תיאור, מחיר</i> — אבל לא מציג את ה־<b>customization tags</b> (ממרחים, ירקות, רטבים, גדלים). למשתמש לא ברור מה הוא הולך להתאים עד שילחץ. ב־admin אתה כן מציג tags — תוסיף אותם גם כאן בעדינות:</p>
+<pre><span class="c">&lt;span class="item-flag"&gt;</span>
+  <span class="c">@if (item.hasBurgerSize)</span> <span class="s">"3 גדלים"</span>
+  <span class="c">@if (item.hasSauces)</span>    <span class="s">"+ רטבים"</span>
+<span class="c">&lt;/span&gt;</span></pre>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Customizer</span>
+        <h3>Bottom sheet בלי handle</h3>
+        <p>ה־customizer נפתח מלמטה עם <code>border-radius:22px 22px 0 0</code> — קלאסי. חסר רק <b>drag-handle</b> קטן (קו אופקי 36px) במרכז־למעלה. זה אות ויזואלי שאפשר לסגור ע"י גרירה למטה, גם אם בפועל לא מימשת gesture. ועוד — באייפד עם RTL, ה־<code>:active</code> במקום <code>:hover</code> נכון, אבל קליק ארוך עדיין לא מורגש. תוסיף <code>scale(.96)</code> מהיר על <code>.chip</code> בלחיצה.</p>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Payment</span>
+        <h3>Credit overlay אין step indicator</h3>
+        <p>4 צעדים: "הכנס כרטיס" → "הזן קוד" → "מאשר..." → "אושר ✓". כרגע רק הטקסט משתנה. הוסף 4 נקודות (●●●●) שמתמלאות — הלקוח יודע איפה הוא נמצא בתהליך וכמה נשאר.</p>
+        <p>גם — כפתור "ביטול" מוצג עד step 2 כולל, ואז נעלם. במעבר זה חד מדי. תן fade-out.</p>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Confirmation</span>
+        <h3>קבלה גנרית — מתאימה לכל מסעדה</h3>
+        <p>אחרי כל המסע, הלקוח מקבל בלוק monospace שיכול להיות של כל מסעדה בעולם. <b>זה הרגע הכי טוב למיתוג</b>.</p>
+        <ul style="padding-inline-start:20px;color:var(--muted);font-size:.92rem;margin-top:4px">
+          <li>שים את הלוגו המלא (לא ה־mark) בראש</li>
+          <li>מספר הזמנה ענק ב־DM Serif Display — 96px+</li>
+          <li>הוסף "תודה <i>{שם הלקוח}</i>" בעברית גדולה</li>
+          <li>"זמן הכנה משוער: 8 דקות" — צפי, לא רק "המתינו לקריאה"</li>
+          <li>QR לוואטסאפ של המסעדה לעדכוני סטטוס</li>
+        </ul>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Kitchen</span>
+        <h3>מסך מטבח — כמעט מצוין</h3>
+        <p>זה המסך הכי טוב באפליקציה. timer בכרטיס, סטטוסים בצבע, scan-line על "חדש", click-to-tick על שורות פריטים. שני דברים קטנים:</p>
+        <ul style="padding-inline-start:20px;color:var(--muted);font-size:.92rem;margin-top:4px">
+          <li>השעון בטופ־בר ב־<code>font-family: 'Heebo', monospace</code> — אבל Heebo לא mono. או החלף ל־<code>'JetBrains Mono'</code> אמיתי, או הסר את ה־<code>monospace</code> ה־fallback שמטעה.</li>
+          <li>טבים: 5 פילטרים (active/new/preparing/ready/done) אחד ליד השני. כשמתחיל להיות עומס, צריך scroll או גלילה. שקול לאחד <i>פעיל</i> כברירת מחדל ולתת dropdown ל־new/preparing/ready/done.</li>
+          <li>אין הבדל בין הזמנה <code>type === 'here'</code> ל־<code>takeaway</code> ברמת ה־card itself. השור על takeaway אולי במסגרת מקווקוות?</li>
+        </ul>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Admin</span>
+        <h3>Toggle switches — לחץ ארוך מדי</h3>
+        <p>הצורה של ה־<code>.sw</code> טובה (30×17px). אבל ב־RTL ה־<code>::after</code> מתחיל ב־<code>right: 2px</code> ועובר ל־<code>right: calc(100% - 15px)</code> — שהוא בעצם <i>שמאל</i>. זה עובד אבל הופך את ההיגיון של "on = ימינה". כשהמשתמש מעברית כותב ל"on" הצפי הוא שהכפתור יזוז ימינה. כרגע הוא זז שמאלה. החלף את ה־<code>right</code> ל־<code>inset-inline-start</code> כדי שיתנהג נכון.</p>
+        <p>שדה ה־<b>icon</b> בעריכת קטגוריה — <code>input maxlength="3"</code> לאמוג'י. אם החלטת ללכת על lucide (סעיף 02), זה צריך להיות picker, לא טקסט חופשי.</p>
+      </article>
+
+      <article class="issue">
+        <span class="tag">Cart drawer</span>
+        <h3>Bottom drawer בטאבלט = מוזר</h3>
+        <p>ה־<code>.drawer</code> נצמד למטה עם <code>max-height:80vh</code>. בטלפון זה הגיוני. בטאבלט אנכי 10" זה הופך לחלון רחב באמצע התחתון — היד צריכה לחזור לראש המסך אחרי. שקול <b>side drawer</b> מימין (RTL) ברוחב 420px במסכים מעל 768px:</p>
+<pre><span class="c">@media</span> (<span class="k">min-width</span>: <span class="s">768px</span>) {
+  .drawer { <span class="k">align-self</span>: stretch; <span class="k">border-radius</span>: <span class="s">22px 0 0 22px</span>;
+            <span class="k">max-width</span>: <span class="s">420px</span>; <span class="k">margin-inline-start</span>: <span class="s">auto</span>; }
+}</pre>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 5 — quick wins ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">05 / QUICK WINS</div>
+      <h2>נצחונות מהירים</h2>
+    </div>
+    <p class="sec-sub">דברים שאפשר לתקן בערב אחד, כל אחד &lt; 30 דקות.</p>
+
+    <ul class="check">
+      <li class="must">להוסיף <code>--amber</code> ו־<code>--blue</code> ל־<span class="file">styles.scss</span> <small>אחרת מסך המטבח חסר גבולות צבעוניים על "new" ו־"preparing".</small></li>
+      <li class="must">להסיר את <i>"קוד ברירת מחדל: 1234"</i> מ־<span class="file">admin-shell.component.html</span> <small>או להחביא מאחורי <code>!environment.production</code>.</small></li>
+      <li class="must">להפוך את חצי הניווט (<code>←</code> → <code>→</code> בכפתורי back) <small>ב־<span class="file">kiosk-shell.component.html</span> — כפתורי back, "המשך", "לתשלום".</small></li>
+      <li>להחליף את כל ה־emoji ב־<code>&lt;lucide-icon&gt;</code> <small>תחיל מ־dine, payment, cart, kitchen tabs. category icons אחרון.</small></li>
+      <li>להוסיף <b>font-family שני</b> לכותרות (DM Serif Display או Frank Ruhl Libre) <small>על <code>h1, h2, .order-num, .total-amt, .cust-name</code>.</small></li>
+      <li>להוסיף accent אדום מותגי <code>--red:#C9362C</code> <small>שונה מ־<code>--danger</code>. בשימוש לתגי "חריף", "מבצע", "חדש בתפריט".</small></li>
+      <li>להפעיל <code>inset-inline-start</code> בכל ה־positional CSS <small>במיוחד ב־<code>.sw::after</code>, <code>.issue::before</code>, <code>.cat-del</code> — RTL יעבוד נכון על כל הדפדפנים.</small></li>
+      <li>לחתוך <b>toroz-mark.svg</b> (רק ראש השור + רקע שקוף) <small>שימוש בכל מקום שה־brand-mark משמש בגודל קטן מ־64px.</small></li>
+      <li>להוסיף <b>step dots</b> ל־credit overlay (●○○○ → ●●○○ → ●●●○ → ●●●●) <small>5 שורות SCSS, רושם מקצועי.</small></li>
+      <li>להוסיף <b>drag handle</b> ל־customizer ול־cart drawer (36×4px) <small>סימן ויזואלי שאפשר לסגור בגרירה.</small></li>
+    </ul>
+  </section>
+
+  <!-- ══════════ SECTION 6 — what's working ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">06 / WORKING</div>
+      <h2>מה עובד טוב כבר עכשיו</h2>
+    </div>
+    <p class="sec-sub">לפני שאתה מתקן הכל — שווה לזכור מה לא לשנות.</p>
+
+    <div class="grid">
+      <article class="issue good">
+        <span class="tag good">Architecture</span>
+        <h3>חלוקת shells נקייה</h3>
+        <p>kiosk / admin / kitchen כ־feature shells נפרדים עם guards, signals, ו־OnPush — סטרוקטורה מאוד בריאה. קל להוסיף shell רביעי (display board ללקוחות?) בלי לגעת בקיים.</p>
+      </article>
+
+      <article class="issue good">
+        <span class="tag good">Palette</span>
+        <h3>חום עמוק + זהב — בחירה אמיצה</h3>
+        <p>רוב אפליקציות הזמנה נופלות ל־white/blue. <code>#1E1208</code> + זהב גורם לאפליקציה להיראות כמו steakhouse, לא 7-eleven. שמור על זה.</p>
+      </article>
+
+      <article class="issue good">
+        <span class="tag good">Kitchen UX</span>
+        <h3>Click-to-tick על שורות הזמנה</h3>
+        <p>השף לוחץ על כל פריט כשהוא מסיים אותו, ה־<code>line-through</code> + opacity .42 נותנים פידבק מיידי. זו פיצ'ר שטבחים אמיתיים יאהבו.</p>
+      </article>
+
+      <article class="issue good">
+        <span class="tag good">Animations</span>
+        <h3>Check-mark ב־confirmation</h3>
+        <p>ה־SVG עם <code>stroke-dasharray</code> + delay של 0.55s על המארק — מסע מצוין. רק תוודא שלא רץ שוב על re-render. ושהכפתור הירוק שמופיע אחרי לא pulse-מתחרה.</p>
+      </article>
+
+      <article class="issue good">
+        <span class="tag good">Type tokens</span>
+        <h3>קיים <code>--t-xs ... --t-xl</code></h3>
+        <p>הבעיה היחידה: בקושי משתמשים בהם. רוב הקומפוננטות hard-code־ות <code>0.85rem</code>, <code>1.1rem</code>. בריפקטור הבא — תעבור על כולם ותחבר ל־variables. סוף סוף תקבל "שינוי הטיפוגרפיה ב־place אחד".</p>
+      </article>
+
+      <article class="issue good">
+        <span class="tag good">Confirm dialog</span>
+        <h3>מחיקה דרך confirm — לא קונפירמציה־פלוס</h3>
+        <p>ב־admin, מחיקת קטגוריה עם <i>n</i> מנות אומרת "למחוק את 'בורגרים' יחד עם 8 מנות?". זה context נכון, לא רק "האם אתה בטוח?". יותר ממה שרוב המתחרים עושים.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ══════════ SECTION 7 — bigger ideas ══════════ -->
+  <section>
+    <div class="sec-h">
+      <div class="sec-num">07 / IDEAS</div>
+      <h2>רעיונות גדולים — לסבב הבא</h2>
+    </div>
+    <p class="sec-sub">לא בהכרח לעכשיו, אבל שווה לרשום ביומן עיצוב.</p>
+
+    <div class="grid">
+      <article class="issue idea">
+        <span class="tag idea">UX</span>
+        <h3>מסך "סיכום" לפני תשלום</h3>
+        <p>כרגע: cart drawer → לחיצה על "לתשלום" → מסך payment. הלקוח לא רואה את ההזמנה מסודרת לפני שהוא משלם. שקול מסך ביניים שמראה: סוג הזמנה, פריטים, הערות, סה"כ, וכפתור "ערוך" לכל אחד. <i>כן, זה צעד נוסף</i> — אבל זה גם הצעד שמונע חזרות.</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Customer display</span>
+        <h3>Shell רביעי: customer display</h3>
+        <p>צג נפרד שפונה ללקוחות וקורא להזמנות מוכנות. אדום: "מוכן! #042 — דני". הלוגו המלא. ספירה לאחור / זמן הכנה ממוצע. <b>זה גם פרסומת מעולה</b> — בין הזמנות, להציג מנת היום.</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Admin</span>
+        <h3>"מנה לא זמינה היום"</h3>
+        <p>פיצ'ר חסר קלאסי — נגמר הצלי, אבל אי אפשר להוריד אותו זמנית בלי למחוק את כל המנה ולאבד את ההגדרות. הוסף toggle <code>available</code> על MenuItem, ובקיוסק תציג את הכרטיס ב־opacity .4 עם תג "אזל היום".</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Motion</span>
+        <h3>טרנזישנים בין מסכים</h3>
+        <p>כרגע מסכי הקיוסק מחליפים מיידית. בעולם RTL, slide ימינה ל"חזרה" ושמאלה ל"קדימה" יחזק את ההיגיון של החיצים שתיקנת. Angular animations של 200ms, ease-out.</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Empathy</span>
+        <h3>מצב "שקט"</h3>
+        <p>מטבח: גם כשמסך פעיל, ה־scan-line על "חדש" + ה־pulse על "late" + סאונד — אם אין הזמנות 10 דקות, הכל סטטי במצב נכון. אבל אם יש 12 הזמנות, זה רעש ויזואלי. שקול mode "busy" שמכבה אנימציות לא חיוניות אוטומטית כש־<code>visibleOrders().length &gt; 6</code>.</p>
+      </article>
+
+      <article class="issue idea">
+        <span class="tag idea">Accessibility</span>
+        <h3>קונטרסט על <code>--muted</code></h3>
+        <p><code>rgba(242,232,204,.62)</code> על <code>#1E1208</code> נותן ~5.4:1 — עובר WCAG AA לטקסט רגיל אבל לא לטקסט קטן. ב־<code>.cat-sub</code> (0.68rem) ו־<code>.line-detail</code> (0.75rem) זה מורגש. תרים ל־.75.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    <div>סקירה זו מכסה את הענפים <span class="file">/kiosk</span>, <span class="file">/admin</span>, <span class="file">/kitchen</span> — לא כולל backend, Firebase rules או PWA manifest.</div>
+    <div class="sig">— review v1</div>
+  </footer>
+
+</div>
+</body>
+</html>

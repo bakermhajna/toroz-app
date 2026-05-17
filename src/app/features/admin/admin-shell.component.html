@@ -14,7 +14,6 @@
       />
       <button class="gate-btn" (click)="tryUnlock()">כניסה</button>
       <div class="gate-err">{{ pinError() }}</div>
-      <div class="gate-hint">קוד ברירת מחדל: 1234</div>
     </div>
   </div>
 }
@@ -56,6 +55,9 @@
                 <div class="cat-sub">{{ entry[1].sub }}</div>
               </div>
               <span class="cat-count">{{ (entry[1].items ?? {} | keyvalue).length }}</span>
+              <button class="cat-no-cust" [class.on]="entry[1].noCustomization"
+                [title]="entry[1].noCustomization ? 'אפשרויות התאמה מבוטלות — לחץ להפעיל' : 'בטל אפשרויות התאמה'"
+                (click)="$event.stopPropagation(); toggleCatCustomization(entry[0])">⊘</button>
               <button class="cat-del" (click)="$event.stopPropagation(); deleteCat(entry[0])">🗑</button>
             </div>
           }
@@ -75,11 +77,13 @@
             </h2>
             <div class="meta">{{ activeCatData()?.sub }}</div>
           </div>
-          <div class="content-tools">
-            <input type="text" class="search" placeholder="🔍 חיפוש מנה..."
-              [value]="searchQ()" (input)="searchQ.set($any($event.target).value)"/>
-            <button class="btn gold" (click)="openItemModal()">+ הוסף מנה</button>
-          </div>
+          @if (activeCatData()) {
+            <div class="content-tools">
+              <input type="text" class="search" placeholder="🔍 חיפוש מנה..."
+                [value]="searchQ()" (input)="searchQ.set($any($event.target).value)"/>
+              <button class="btn gold" (click)="openItemModal()">+ הוסף מנה</button>
+            </div>
+          }
         </div>
 
         <div class="items-grid">
@@ -117,10 +121,12 @@
             </div>
           }
           <!-- Add card -->
-          <div class="add-card" (click)="openItemModal()">
-            <span class="plus">+</span>
-            <span>הוסף מנה</span>
-          </div>
+          @if (activeCatData()) {
+            <div class="add-card" (click)="openItemModal()">
+              <span class="plus">+</span>
+              <span>הוסף מנה</span>
+            </div>
+          }
         </div>
       </section>
     </div>
@@ -172,50 +178,52 @@
           </div>
         </div>
 
-        <div class="section-title">אפשרויות התאמה</div>
-        <div class="toggles">
-          <div class="toggle" [class.on]="fHasSpreads()" (click)="fHasSpreads.update(v=>!v)">
-            <div class="sw"></div><span>ממרחים</span>
-          </div>
-          <div class="toggle" [class.on]="fHasVeggies()" (click)="fHasVeggies.update(v=>!v)">
-            <div class="sw"></div><span>ירקות</span>
-          </div>
-          <div class="toggle" [class.on]="fHasSauces()" (click)="fHasSauces.update(v=>!v)">
-            <div class="sw"></div><span>רטבים</span>
-          </div>
-          <div class="toggle" [class.on]="fHasExtras()" (click)="fHasExtras.update(v=>!v)">
-            <div class="sw"></div><span>תוספות (₪5)</span>
-          </div>
-          <div class="toggle" [class.on]="fHasSizeOption()" (click)="fHasSizeOption.update(v=>!v)">
-            <div class="sw"></div><span>בחירת גודל</span>
-          </div>
-          <div class="toggle" [class.on]="fHasBurgerSize()" (click)="fHasBurgerSize.update(v=>!v)">
-            <div class="sw"></div><span>מידת קציצה</span>
-          </div>
-        </div>
-
-        @if (fHasSizeOption()) {
-          <div class="section-title">גדלים זמינים</div>
-          @for (s of fSizes(); track $index) {
-            <div class="size-row">
-              <input type="text" placeholder="שם הגודל" [value]="s.label" (input)="updateSizeLabel($index, $any($event.target).value)"/>
-              <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateSizePrice($index, +$any($event.target).value||0)"/>
-              <button class="x-mini" (click)="removeSize($index)">×</button>
+        @if (!fTargetCatNoCustomization()) {
+          <div class="section-title">אפשרויות התאמה</div>
+          <div class="toggles">
+            <div class="toggle" [class.on]="fHasSpreads()" (click)="fHasSpreads.update(v=>!v)">
+              <div class="sw"></div><span>ממרחים</span>
             </div>
-          }
-          <button class="add-mini" (click)="addSize()">+ הוסף גודל</button>
-        }
-
-        @if (fHasBurgerSize()) {
-          <div class="section-title">מידות קציצה</div>
-          @for (s of fBSizes(); track $index) {
-            <div class="size-row">
-              <input type="text" placeholder="שם המידה" [value]="s.label" (input)="updateBSizeLabel($index, $any($event.target).value)"/>
-              <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateBSizePrice($index, +$any($event.target).value||0)"/>
-              <button class="x-mini" (click)="removeBSize($index)">×</button>
+            <div class="toggle" [class.on]="fHasVeggies()" (click)="fHasVeggies.update(v=>!v)">
+              <div class="sw"></div><span>ירקות</span>
             </div>
+            <div class="toggle" [class.on]="fHasSauces()" (click)="fHasSauces.update(v=>!v)">
+              <div class="sw"></div><span>רטבים</span>
+            </div>
+            <div class="toggle" [class.on]="fHasExtras()" (click)="fHasExtras.update(v=>!v)">
+              <div class="sw"></div><span>תוספות (₪5)</span>
+            </div>
+            <div class="toggle" [class.on]="fHasSizeOption()" (click)="fHasSizeOption.update(v=>!v)">
+              <div class="sw"></div><span>בחירת גודל</span>
+            </div>
+            <div class="toggle" [class.on]="fHasBurgerSize()" (click)="fHasBurgerSize.update(v=>!v)">
+              <div class="sw"></div><span>מידת קציצה</span>
+            </div>
+          </div>
+
+          @if (fHasSizeOption()) {
+            <div class="section-title">גדלים זמינים</div>
+            @for (s of fSizes(); track $index) {
+              <div class="size-row">
+                <input type="text" placeholder="שם הגודל" [value]="s.label" (input)="updateSizeLabel($index, $any($event.target).value)"/>
+                <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateSizePrice($index, +$any($event.target).value||0)"/>
+                <button class="x-mini" (click)="removeSize($index)">×</button>
+              </div>
+            }
+            <button class="add-mini" (click)="addSize()">+ הוסף גודל</button>
           }
-          <button class="add-mini" (click)="addBSize()">+ הוסף מידה</button>
+
+          @if (fHasBurgerSize()) {
+            <div class="section-title">מידות קציצה</div>
+            @for (s of fBSizes(); track $index) {
+              <div class="size-row">
+                <input type="text" placeholder="שם המידה" [value]="s.label" (input)="updateBSizeLabel($index, $any($event.target).value)"/>
+                <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateBSizePrice($index, +$any($event.target).value||0)"/>
+                <button class="x-mini" (click)="removeBSize($index)">×</button>
+              </div>
+            }
+            <button class="add-mini" (click)="addBSize()">+ הוסף מידה</button>
+          }
         }
 
       </div>

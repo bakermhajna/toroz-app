@@ -43,6 +43,7 @@ export interface MenuCategory {
   sub: string;
   order: number;
   imageUrl?: string;
+  noCustomization?: boolean;
   items: Record<number, MenuItem> | null;
 }
 
