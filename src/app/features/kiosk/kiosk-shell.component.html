@@ -85,7 +85,7 @@
         @for (entry of sortedCategories; track entry[0]) {
           <button class="cat-card" (click)="openCategory(entry[0])">
             @if (entry[1].imageUrl) {
-              <img class="cat-img" [src]="entry[1].imageUrl" [alt]="entry[1].title" loading="lazy"/>
+              <img class="cat-img" [src]="entry[1].imageUrl" [alt]="entry[1].title" fetchpriority="high"/>
             } @else {
               <span class="cat-icon">{{ entry[1].icon }}</span>
             }
@@ -101,25 +101,25 @@
 <!-- MENU ITEMS -->
 @if (screen() === 'menu') {
   <div class="screen menu-screen">
-    <div class="menu-topbar">
-      <button class="back-btn" (click)="goToCategories()" aria-label="חזרה">→ חזרה</button>
+    <div class="cat-topbar">
+     <button class="back-btn" (click)="goToCategories()" aria-label="חזרה">→ חזרה</button>
       <app-brand-mark [size]="40"/>
-      <div class="menu-title">
-        <span>{{ currentCatData?.icon }}</span>
-        <span>{{ currentCatData?.title }}</span>
+      <div class="cart-btn-wrap">
+        @if (cartCount() > 0) {
+          <button class="cart-btn" (click)="cartOpen.set(true)" aria-label="הסל שלי">
+            <lucide-icon name="shopping-bag" [size]="16" [strokeWidth]="2.5" color="currentColor"/>
+            <span class="cart-badge">{{ cartCount() }}</span> ₪{{ cartTotal() }}
+          </button>
+        } @else {
+          <div class="cart-btn-placeholder"></div>
+        }
       </div>
-      @if (cartCount() > 0) {
-        <button class="cart-btn" (click)="cartOpen.set(true)" aria-label="הסל שלי">
-          <lucide-icon name="shopping-bag" [size]="16" [strokeWidth]="2.5" color="currentColor"/>
-          <span class="cart-badge">{{ cartCount() }}</span> ₪{{ cartTotal() }}
-        </button>
-      }
     </div>
     <div class="items-grid">
       @for (item of currentCatItems; track item.id) {
         <button class="item-card" (click)="openCustomizer(item)">
           @if (item.imageUrl) {
-            <img class="item-img" [src]="item.imageUrl" [alt]="item.name" loading="lazy"/>
+            <img class="item-img" [src]="item.imageUrl" [alt]="item.name"/>
           } @else {
             <div class="item-img-placeholder">{{ currentCatData?.icon }}</div>
           }

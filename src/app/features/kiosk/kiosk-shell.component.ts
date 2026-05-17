@@ -1,8 +1,9 @@
 import {
-  Component, ChangeDetectionStrategy, signal, computed, inject, viewChild,
+  Component, ChangeDetectionStrategy, signal, computed, inject, viewChild, effect,
 } from '@angular/core';
 import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
+import { ImageCacheService } from '../../core/services/image-cache.service';
 import { MenuItem, MenuCategory } from '../../core/models/menu.model';
 import { CartItem } from '../../core/models/order.model';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
@@ -25,6 +26,14 @@ export type KioskScreen = 'welcome' | 'dine' | 'customer' | 'category' | 'menu' 
 export class KioskShellComponent {
   protected menuSvc = inject(MenuService);
   private orderSvc = inject(OrderService);
+  private imageCacheSvc = inject(ImageCacheService);
+
+  constructor() {
+    effect(() => {
+      const menu = this.menuSvc.menuResource.value();
+      if (menu) this.imageCacheSvc.preloadFromMenu(menu);
+    });
+  }
 
   // ── Navigation ──
   readonly screen = signal<KioskScreen>('welcome');
