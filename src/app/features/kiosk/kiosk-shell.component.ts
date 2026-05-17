@@ -1,7 +1,7 @@
 import {
-  Component, ChangeDetectionStrategy, signal, computed, inject, OnInit, viewChild,
+  Component, ChangeDetectionStrategy, signal, computed, inject, viewChild,
 } from '@angular/core';
-import { MenuService, MENU_META_SEED } from '../../core/services/menu.service';
+import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
 import { MenuItem, MenuCategory } from '../../core/models/menu.model';
 import { CartItem } from '../../core/models/order.model';
@@ -14,7 +14,6 @@ import { LucideAngularModule } from 'lucide-angular';
 
 export type KioskScreen = 'welcome' | 'dine' | 'customer' | 'category' | 'menu' | 'payment' | 'confirmation';
 
-const RESTAURANT_PHONE = '972527558858';
 
 @Component({
   selector: 'app-kiosk-shell',
@@ -23,7 +22,7 @@ const RESTAURANT_PHONE = '972527558858';
   templateUrl: './kiosk-shell.component.html',
   styleUrl: './kiosk-shell.component.scss',
 })
-export class KioskShellComponent implements OnInit {
+export class KioskShellComponent {
   protected menuSvc = inject(MenuService);
   private orderSvc = inject(OrderService);
 
@@ -56,6 +55,7 @@ export class KioskShellComponent implements OnInit {
   readonly creditStep = signal(0);
   readonly creditSteps = ['הכנס כרטיס', 'הזן קוד סודי', 'מאשר תשלום...', 'תשלום אושר ✓'];
   private creditTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoResetTimer: ReturnType<typeof setTimeout> | null = null;
 
   get menu() { return this.menuSvc.menuResource.value(); }
   get meta() { return this.menuSvc.metaResource.value(); }
@@ -77,8 +77,6 @@ export class KioskShellComponent implements OnInit {
     if (!cat) return [];
     return Object.values(cat.items ?? {});
   }
-
-  ngOnInit(): void {}
 
   // ── Screens ──
   goToDine(): void { this.screen.set('dine'); }
@@ -164,10 +162,7 @@ export class KioskShellComponent implements OnInit {
       `סוג: ${this.orderType() === 'here' ? 'לשבת פה 🪑' : 'לקחת 🥡'}`,
       `תשלום: ${payLabel}`,
       '─────────────────',
-      ...this.cart().flatMap(item => [
-        `${item.qty}× ${item.name}  ₪${item.unitPrice * item.qty}`,
-        ...item.details.map(d => `   ${d}`),
-      ]),
+      ...this.cart().map(item => `${item.qty}× ${item.name}  ₪${item.unitPrice * item.qty}`),
       '─────────────────',
       `סה"כ: ₪${this.cartTotal()}`,
       `תאריך: ${new Date().toLocaleDateString('he-IL')} ${new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`,
@@ -189,24 +184,11 @@ export class KioskShellComponent implements OnInit {
     await this.orderSvc.addOrder(order);
 
     this.screen.set('confirmation');
-  }
-
-  private sendWhatsApp(num: number, payLabel: string): void {
-    const lines = [
-      `*הזמנה חדשה #${num}*`,
-      `סוג: ${this.orderType() === 'here' ? 'לשבת פה' : 'לקחת'}`,
-      `תשלום: ${payLabel}`,
-      this.customerName() ? `לקוח: ${this.customerName()}` : '',
-      '',
-      ...this.cart().map(i => `• ${i.qty}× ${i.name} ₪${i.unitPrice * i.qty}\n${i.details.map(d => `  ${d}`).join('\n')}`),
-      '',
-      `*סה"כ: ₪${this.cartTotal()}*`,
-    ].filter(l => l !== undefined).join('\n');
-
-    window.open(`https://wa.me/${RESTAURANT_PHONE}?text=${encodeURIComponent(lines)}`, '_blank');
+    this.autoResetTimer = setTimeout(() => this.newOrder(), 15_000);
   }
 
   newOrder(): void {
+    if (this.autoResetTimer) { clearTimeout(this.autoResetTimer); this.autoResetTimer = null; }
     this.resetOrder();
     this.screen.set('welcome');
   }

@@ -58,10 +58,6 @@ export class AdminShellComponent {
     return m && k ? (m[k] ?? null) : null;
   });
 
-  readonly fTargetCatNoCustomization = computed(() =>
-    this.menuSvc.menuResource.value()?.[this.fTargetCat()]?.noCustomization ?? false
-  );
-
   readonly filteredItems = computed((): MenuItem[] => {
     const cat = this.activeCatData();
     if (!cat) return [];
@@ -139,7 +135,6 @@ export class AdminShellComponent {
       try {
         imageUrl = await this.storageSvc.uploadCategoryImage(unique, file);
       } catch (err: unknown) {
-        this.cfUploading.set(false);
         this.toast().show(`שגיאה בהעלאת תמונה: ${err instanceof Error ? err.message : String(err)}`, 'danger');
         return;
       } finally { this.cfUploading.set(false); }
@@ -164,6 +159,9 @@ export class AdminShellComponent {
   readonly fDesc = signal('');
   readonly fPrice = signal(0);
   readonly fTargetCat = signal('');
+  readonly fTargetCatNoCustomization = computed(() =>
+    this.menuSvc.menuResource.value()?.[this.fTargetCat()]?.noCustomization ?? false
+  );
   readonly fHasSpreads = signal(false);
   readonly fHasVeggies = signal(false);
   readonly fHasSauces = signal(false);
@@ -250,7 +248,6 @@ export class AdminShellComponent {
       try {
         imageUrl = await this.storageSvc.uploadItemImage(targetCat, id, file);
       } catch (err: unknown) {
-        this.uploading.set(false);
         const msg = err instanceof Error ? err.message : String(err);
         this.toast().show(`שגיאה בהעלאת תמונה: ${msg}`, 'danger');
         return;
@@ -258,7 +255,6 @@ export class AdminShellComponent {
         this.uploading.set(false);
       }
     } else {
-      // keep existing
       const existing = this.activeCatData()?.items?.[id];
       imageUrl = existing?.imageUrl;
     }
@@ -275,7 +271,6 @@ export class AdminShellComponent {
       sizes: this.fHasSizeOption() ? this.fSizes().filter(s => s.label.trim()) : undefined,
       burgerSizes: this.fHasBurgerSize() ? this.fBSizes().filter(s => s.label.trim()) : undefined,
     };
-    // clean undefineds
     (Object.keys(item) as (keyof MenuItem)[]).forEach(k => item[k] === undefined && delete item[k]);
 
     await this.menuSvc.saveItem(targetCat, item);
