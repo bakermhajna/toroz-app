@@ -65,12 +65,20 @@
   &.active { background: linear-gradient(180deg,rgba(200,150,46,.18),rgba(200,150,46,.08)); border: 1px solid var(--border-strong); .cat-name { color: var(--gold); } }
 }
 .cat-icon { font-size: 1.35rem; line-height: 1; }
+.cat-thumb { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
 .cat-info { flex: 1; min-width: 0; }
 .cat-name { font-weight: 700; font-size: .92rem; }
 .cat-sub  { font-size: .68rem; color: var(--muted); margin-top: 1px; }
 .cat-count {
   background: rgba(200,150,46,.15); color: var(--gold);
   border-radius: 999px; padding: 2px 8px; font-size: .7rem; font-weight: 700;
+}
+.cat-no-cust {
+  opacity: 0; transition: opacity .15s; background: transparent; border: none;
+  color: var(--muted); cursor: pointer; padding: 4px; border-radius: 6px; font-size: .95rem;
+  .cat-row:hover & { opacity: .5; }
+  &.on { opacity: 1; color: var(--amber); }
+  &:hover { opacity: 1 !important; background: rgba(232,162,58,.1); color: var(--amber); }
 }
 .cat-del {
   opacity: 0; transition: opacity .15s; background: transparent; border: none;
@@ -104,14 +112,15 @@
 }
 .item-card {
   background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-  overflow: hidden; display: flex; flex-direction: column;
+  display: flex; flex-direction: column;
   transition: border-color .15s;
   &:hover { border-color: var(--gold); }
 }
-.item-img { width: 100%; height: 140px; object-fit: cover; }
+.item-img { width: 100%; height: 140px; object-fit: cover; border-radius: 14px 14px 0 0; }
 .item-img-placeholder {
   width: 100%; height: 140px; background: rgba(200,150,46,.07);
   display: flex; align-items: center; justify-content: center; font-size: 2.8rem;
+  border-radius: 14px 14px 0 0;
 }
 .item-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
 .item-price {

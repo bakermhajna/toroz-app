@@ -1,9 +1,11 @@
 import { Component, ChangeDetectionStrategy, input, output } from '@angular/core';
 import { CartItem } from '../../../../core/models/order.model';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-cart-drawer',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [LucideAngularModule],
   templateUrl: './cart-drawer.component.html',
   styleUrl: './cart-drawer.component.scss',
 })

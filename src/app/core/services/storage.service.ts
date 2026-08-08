@@ -22,4 +22,22 @@ export class StorageService {
       }
     }
   }
+
+  async uploadCategoryImage(catKey: string, file: File): Promise<string> {
+    const ext = file.name.split('.').pop() ?? 'jpg';
+    const fileRef = ref(this.storage, `menu-images/categories/${catKey}.${ext}`);
+    const snapshot = await uploadBytes(fileRef, file);
+    return getDownloadURL(snapshot.ref);
+  }
+
+  async deleteCategoryImage(catKey: string): Promise<void> {
+    for (const ext of ['jpg', 'jpeg', 'png', 'webp']) {
+      try {
+        await deleteObject(ref(this.storage, `menu-images/categories/${catKey}.${ext}`));
+        return;
+      } catch {
+        // try next extension
+      }
+    }
+  }
 }

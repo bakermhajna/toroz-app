@@ -29,6 +29,19 @@
   </div>
 </div>
 
+<!-- DONE DATE FILTER -->
+@if (filter() === 'done') {
+  <div class="done-date-bar">
+    <label>תאריך</label>
+    <input type="date" [value]="doneDate()" [max]="todayStr"
+           (change)="setDoneDate($any($event.target).value)"/>
+    @if (doneDate() !== todayStr) {
+      <button class="today-btn" (click)="setDoneDate(todayStr)">היום</button>
+    }
+    <span class="date-count">{{ counts().done }} הזמנות</span>
+  </div>
+}
+
 <!-- BOARD -->
 <div class="board">
   @if (visibleOrders().length === 0) {

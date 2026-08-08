@@ -57,6 +57,37 @@
   .sound-toggle.off & { background: #555; box-shadow: none; }
 }
 
+// ── DONE DATE BAR ──
+.done-date-bar {
+  background: var(--dark); border-bottom: 1px solid var(--border);
+  padding: 8px 20px; display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+
+  label {
+    color: var(--muted); font-weight: 700; font-size: .72rem;
+    letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+  }
+
+  input[type=date] {
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); padding: 5px 10px; border-radius: 8px;
+    font-family: 'Heebo', sans-serif; font-size: .85rem;
+    cursor: pointer; color-scheme: dark;
+    &:focus { outline: none; border-color: var(--gold); }
+  }
+
+  .today-btn {
+    background: rgba(200,150,46,.12); border: 1px solid rgba(200,150,46,.4);
+    color: var(--gold); padding: 5px 12px; border-radius: 8px;
+    font-family: 'Heebo', sans-serif; font-size: .8rem; font-weight: 700;
+    cursor: pointer; transition: background .15s;
+    &:hover { background: rgba(200,150,46,.2); }
+  }
+
+  .date-count {
+    margin-inline-start: auto; color: var(--muted); font-size: .78rem;
+  }
+}
+
 // ── BOARD ──
 .board {
   flex: 1; overflow-y: auto; padding: 16px;

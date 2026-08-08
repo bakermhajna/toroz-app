@@ -26,20 +26,30 @@ export class KitchenComponent implements OnInit, OnDestroy {
   readonly filter = signal<FilterType>('active');
   readonly clock = signal('');
   readonly soundOn = signal(localStorage.getItem('toroz_kitchen_sound') !== '0');
+  readonly doneDate = signal(new Date().toLocaleDateString('en-CA'));
+
+  get todayStr(): string { return new Date().toLocaleDateString('en-CA'); }
+
+  private readonly filteredDoneOrders = computed(() => {
+    const d = this.doneDate();
+    return this.orderSvc.doneOrders().filter(o =>
+      new Date(o.updatedAt ?? o.createdAt).toLocaleDateString('en-CA') === d
+    );
+  });
 
   readonly counts = computed(() => {
     const orders = this.orderSvc.todayOrders();
     const n = (s: OrderStatus) => orders.filter(o => o.status === s).length;
     return {
       new: n('new'), preparing: n('preparing'), ready: n('ready'),
-      done: this.orderSvc.doneOrders().length,
+      done: this.filteredDoneOrders().length,
       get active() { return this.new + this.preparing + this.ready; },
     };
   });
 
   readonly visibleOrders = computed(() => {
     const f = this.filter();
-    if (f === 'done') return this.orderSvc.doneOrders();
+    if (f === 'done') return this.filteredDoneOrders();
     const orders = this.orderSvc.todayOrders();
     const list = f === 'active' ? orders : orders.filter(o => o.status === f);
     const rank: Record<OrderStatus, number> = { new: 0, preparing: 1, ready: 2, done: 3 };
@@ -79,6 +89,7 @@ export class KitchenComponent implements OnInit, OnDestroy {
   }
 
   setFilter(f: FilterType): void { this.filter.set(f); }
+  setDoneDate(d: string): void { this.doneDate.set(d); }
 
   async setStatus(order: Order, status: OrderStatus): Promise<void> {
     await this.orderSvc.updateStatus(order.id, status);
@@ -120,16 +131,22 @@ export class KitchenComponent implements OnInit, OnDestroy {
   toggleSound(): void {
     this.soundOn.update(v => !v);
     localStorage.setItem('toroz_kitchen_sound', this.soundOn() ? '1' : '0');
+    // Create/resume AudioContext on the user gesture so Chrome allows it later
+    if (this.soundOn()) {
+      this.audioCtx ??= new AudioContext();
+      this.audioCtx.resume();
+    }
   }
 
   itemCount(order: Order): number {
     return (order.items ?? []).reduce((s, i) => s + i.qty, 0);
   }
 
-  private ding(): void {
+  private async ding(): Promise<void> {
     if (!this.soundOn()) return;
     try {
       this.audioCtx ??= new AudioContext();
+      if (this.audioCtx.state === 'suspended') await this.audioCtx.resume();
       const now = this.audioCtx.currentTime;
       [880, 1320].forEach((freq, i) => {
         const osc = this.audioCtx!.createOscillator();

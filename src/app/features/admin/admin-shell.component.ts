@@ -1,5 +1,5 @@
 import {
-  Component, ChangeDetectionStrategy, inject, signal, computed, viewChild,
+  Component, ChangeDetectionStrategy, inject, signal, computed, viewChild, ElementRef,
 } from '@angular/core';
 import { MenuService } from '../../core/services/menu.service';
 import { StorageService } from '../../core/services/storage.service';
@@ -71,6 +71,11 @@ export class AdminShellComponent {
     this.searchQ.set('');
   }
 
+  async toggleCatCustomization(key: string): Promise<void> {
+    const enabled = await this.menuSvc.toggleCategoryCustomization(key);
+    this.toast().show(enabled ? 'אפשרויות התאמה בוטלו' : 'אפשרויות התאמה הופעלו', 'success');
+  }
+
   deleteCat(key: string): void {
     const cat = this.menuSvc.menuResource.value()?.[key];
     if (!cat) return;
@@ -90,8 +95,27 @@ export class AdminShellComponent {
   readonly cfTitle = signal('');
   readonly cfIcon = signal('');
   readonly cfSub = signal('');
+  readonly cfImagePreview = signal<string | null>(null);
+  readonly cfImageFile = signal<File | null>(null);
+  readonly cfUploading = signal(false);
+  private catImageInput = viewChild<ElementRef<HTMLInputElement>>('catImageInput');
 
-  openCatModal(): void { this.cfTitle.set(''); this.cfIcon.set(''); this.cfSub.set(''); this.catModalOpen.set(true); }
+  triggerCatImagePick(): void { this.catImageInput()?.nativeElement.click(); }
+
+  onCatImagePicked(event: Event): void {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.cfImageFile.set(file);
+    const reader = new FileReader();
+    reader.onload = () => this.cfImagePreview.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  openCatModal(): void {
+    this.cfTitle.set(''); this.cfIcon.set(''); this.cfSub.set('');
+    this.cfImagePreview.set(null); this.cfImageFile.set(null);
+    this.catModalOpen.set(true);
+  }
   closeCatModal(): void { this.catModalOpen.set(false); }
 
   async saveCat(): Promise<void> {
@@ -103,7 +127,24 @@ export class AdminShellComponent {
     const m = this.menuSvc.menuResource.value() ?? {};
     let unique = key, n = 2;
     while (m[unique]) unique = key + n++;
-    const newCat: MenuCategory = { icon, title, sub, order: this.sortedCats().length, items: {} };
+
+    let imageUrl: string | undefined;
+    const file = this.cfImageFile();
+    if (file) {
+      this.cfUploading.set(true);
+      try {
+        imageUrl = await this.storageSvc.uploadCategoryImage(unique, file);
+      } catch (err: unknown) {
+        this.toast().show(`שגיאה בהעלאת תמונה: ${err instanceof Error ? err.message : String(err)}`, 'danger');
+        return;
+      } finally { this.cfUploading.set(false); }
+    }
+
+    const newCat: MenuCategory = {
+      icon, title, sub, order: this.sortedCats().length,
+      ...(imageUrl ? { imageUrl } : {}),
+      items: {},
+    };
     await this.menuSvc.addCategory(unique, newCat);
     this.activeCat.set(unique);
     this.closeCatModal();
@@ -118,6 +159,9 @@ export class AdminShellComponent {
   readonly fDesc = signal('');
   readonly fPrice = signal(0);
   readonly fTargetCat = signal('');
+  readonly fTargetCatNoCustomization = computed(() =>
+    this.menuSvc.menuResource.value()?.[this.fTargetCat()]?.noCustomization ?? false
+  );
   readonly fHasSpreads = signal(false);
   readonly fHasVeggies = signal(false);
   readonly fHasSauces = signal(false);
@@ -131,6 +175,11 @@ export class AdminShellComponent {
   readonly imagePreview = signal<string | null>(null);
   readonly imageFile = signal<File | null>(null);
   readonly uploading = signal(false);
+  private imageInput = viewChild<ElementRef<HTMLInputElement>>('imageInput');
+
+  triggerImagePick(): void {
+    this.imageInput()?.nativeElement.click();
+  }
 
   openItemModal(id?: number): void {
     const cat = this.activeCatData();
@@ -198,11 +247,14 @@ export class AdminShellComponent {
       this.uploading.set(true);
       try {
         imageUrl = await this.storageSvc.uploadItemImage(targetCat, id, file);
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err);
+        this.toast().show(`שגיאה בהעלאת תמונה: ${msg}`, 'danger');
+        return;
       } finally {
         this.uploading.set(false);
       }
     } else {
-      // keep existing
       const existing = this.activeCatData()?.items?.[id];
       imageUrl = existing?.imageUrl;
     }
@@ -219,7 +271,6 @@ export class AdminShellComponent {
       sizes: this.fHasSizeOption() ? this.fSizes().filter(s => s.label.trim()) : undefined,
       burgerSizes: this.fHasBurgerSize() ? this.fBSizes().filter(s => s.label.trim()) : undefined,
     };
-    // clean undefineds
     (Object.keys(item) as (keyof MenuItem)[]).forEach(k => item[k] === undefined && delete item[k]);
 
     await this.menuSvc.saveItem(targetCat, item);

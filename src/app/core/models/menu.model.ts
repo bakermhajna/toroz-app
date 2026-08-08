@@ -42,6 +42,8 @@ export interface MenuCategory {
   title: string;
   sub: string;
   order: number;
+  imageUrl?: string;
+  noCustomization?: boolean;
   items: Record<number, MenuItem> | null;
 }
 

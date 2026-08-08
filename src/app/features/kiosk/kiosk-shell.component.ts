@@ -1,8 +1,9 @@
 import {
-  Component, ChangeDetectionStrategy, signal, computed, inject, OnInit, viewChild,
+  Component, ChangeDetectionStrategy, signal, computed, inject, viewChild, effect,
 } from '@angular/core';
-import { MenuService, MENU_META_SEED } from '../../core/services/menu.service';
+import { MenuService } from '../../core/services/menu.service';
 import { OrderService } from '../../core/services/order.service';
+import { ImageCacheService } from '../../core/services/image-cache.service';
 import { MenuItem, MenuCategory } from '../../core/models/menu.model';
 import { CartItem } from '../../core/models/order.model';
 import { ToastComponent } from '../../shared/components/toast/toast.component';
@@ -10,21 +11,29 @@ import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/c
 import { ItemCustomizerComponent } from './components/item-customizer/item-customizer.component';
 import { CartDrawerComponent } from './components/cart-drawer/cart-drawer.component';
 import { BrandMarkComponent } from '../../shared/components/brand-mark/brand-mark.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 export type KioskScreen = 'welcome' | 'dine' | 'customer' | 'category' | 'menu' | 'payment' | 'confirmation';
 
-const RESTAURANT_PHONE = '972527558858';
 
 @Component({
   selector: 'app-kiosk-shell',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ToastComponent, ConfirmDialogComponent, ItemCustomizerComponent, CartDrawerComponent, BrandMarkComponent],
+  imports: [ToastComponent, ConfirmDialogComponent, ItemCustomizerComponent, CartDrawerComponent, BrandMarkComponent, LucideAngularModule],
   templateUrl: './kiosk-shell.component.html',
   styleUrl: './kiosk-shell.component.scss',
 })
-export class KioskShellComponent implements OnInit {
+export class KioskShellComponent {
   protected menuSvc = inject(MenuService);
   private orderSvc = inject(OrderService);
+  private imageCacheSvc = inject(ImageCacheService);
+
+  constructor() {
+    effect(() => {
+      const menu = this.menuSvc.menuResource.value();
+      if (menu) this.imageCacheSvc.preloadFromMenu(menu);
+    });
+  }
 
   // ── Navigation ──
   readonly screen = signal<KioskScreen>('welcome');
@@ -33,6 +42,8 @@ export class KioskShellComponent implements OnInit {
   readonly orderType = signal<'here' | 'takeaway'>('here');
   readonly customerName = signal('');
   readonly customerPhone = signal('');
+  readonly nameError = signal(false);
+  readonly phoneError = signal(false);
   readonly paymentMethod = signal<'cash' | 'credit' | ''>('');
   readonly currentCat = signal<string | null>(null);
 
@@ -53,6 +64,7 @@ export class KioskShellComponent implements OnInit {
   readonly creditStep = signal(0);
   readonly creditSteps = ['הכנס כרטיס', 'הזן קוד סודי', 'מאשר תשלום...', 'תשלום אושר ✓'];
   private creditTimer: ReturnType<typeof setTimeout> | null = null;
+  private autoResetTimer: ReturnType<typeof setTimeout> | null = null;
 
   get menu() { return this.menuSvc.menuResource.value(); }
   get meta() { return this.menuSvc.metaResource.value(); }
@@ -75,8 +87,6 @@ export class KioskShellComponent implements OnInit {
     return Object.values(cat.items ?? {});
   }
 
-  ngOnInit(): void {}
-
   // ── Screens ──
   goToDine(): void { this.screen.set('dine'); }
   goToWelcome(): void { this.screen.set('welcome'); this.resetOrder(); }
@@ -87,15 +97,19 @@ export class KioskShellComponent implements OnInit {
   }
 
   submitCustomer(): void {
-    if (!this.customerName().trim()) {
-      this.showToast('יש להזין שם', 'danger');
-      return;
-    }
-    if (!this.customerPhone().trim()) {
-      this.showToast('יש להזין מספר טלפון', 'danger');
-      return;
-    }
+    const nameOk = !!this.customerName().trim();
+    const phoneOk = !!this.customerPhone().trim();
+    this.nameError.set(!nameOk);
+    this.phoneError.set(!phoneOk);
+    if (!nameOk || !phoneOk) return;
     this.screen.set('category');
+  }
+
+  itemDisplayPrice(item: MenuItem): string {
+    if (item.basePrice > 0) return `₪${item.basePrice}`;
+    if (item.burgerSizes?.length) return `החל מ-₪${item.burgerSizes[0].price}`;
+    if (item.sizes?.length) return `החל מ-₪${item.sizes[0].price}`;
+    return '';
   }
 
   openCategory(key: string): void {
@@ -157,10 +171,7 @@ export class KioskShellComponent implements OnInit {
       `סוג: ${this.orderType() === 'here' ? 'לשבת פה 🪑' : 'לקחת 🥡'}`,
       `תשלום: ${payLabel}`,
       '─────────────────',
-      ...this.cart().flatMap(item => [
-        `${item.qty}× ${item.name}  ₪${item.unitPrice * item.qty}`,
-        ...item.details.map(d => `   ${d}`),
-      ]),
+      ...this.cart().map(item => `${item.qty}× ${item.name}  ₪${item.unitPrice * item.qty}`),
       '─────────────────',
       `סה"כ: ₪${this.cartTotal()}`,
       `תאריך: ${new Date().toLocaleDateString('he-IL')} ${new Date().toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}`,
@@ -182,25 +193,11 @@ export class KioskShellComponent implements OnInit {
     await this.orderSvc.addOrder(order);
 
     this.screen.set('confirmation');
-    setTimeout(() => this.sendWhatsApp(num, payLabel), 500);
-  }
-
-  private sendWhatsApp(num: number, payLabel: string): void {
-    const lines = [
-      `*הזמנה חדשה #${num}*`,
-      `סוג: ${this.orderType() === 'here' ? 'לשבת פה' : 'לקחת'}`,
-      `תשלום: ${payLabel}`,
-      this.customerName() ? `לקוח: ${this.customerName()}` : '',
-      '',
-      ...this.cart().map(i => `• ${i.qty}× ${i.name} ₪${i.unitPrice * i.qty}\n${i.details.map(d => `  ${d}`).join('\n')}`),
-      '',
-      `*סה"כ: ₪${this.cartTotal()}*`,
-    ].filter(l => l !== undefined).join('\n');
-
-    window.open(`https://wa.me/${RESTAURANT_PHONE}?text=${encodeURIComponent(lines)}`, '_blank');
+    this.autoResetTimer = setTimeout(() => this.newOrder(), 15_000);
   }
 
   newOrder(): void {
+    if (this.autoResetTimer) { clearTimeout(this.autoResetTimer); this.autoResetTimer = null; }
     this.resetOrder();
     this.screen.set('welcome');
   }
@@ -209,6 +206,8 @@ export class KioskShellComponent implements OnInit {
     this.cart.set([]);
     this.customerName.set('');
     this.customerPhone.set('');
+    this.nameError.set(false);
+    this.phoneError.set(false);
     this.paymentMethod.set('');
     this.currentCat.set(null);
     this.orderNum.set(0);

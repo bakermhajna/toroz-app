@@ -14,7 +14,6 @@
       />
       <button class="gate-btn" (click)="tryUnlock()">כניסה</button>
       <div class="gate-err">{{ pinError() }}</div>
-      <div class="gate-hint">קוד ברירת מחדל: 1234</div>
     </div>
   </div>
 }
@@ -46,12 +45,19 @@
           }
           @for (entry of sortedCats(); track entry[0]) {
             <div class="cat-row" [class.active]="activeCat() === entry[0]" (click)="selectCat(entry[0])">
-              <span class="cat-icon">{{ entry[1].icon }}</span>
+              @if (entry[1].imageUrl) {
+                <img class="cat-thumb" [src]="entry[1].imageUrl" [alt]="entry[1].title"/>
+              } @else {
+                <span class="cat-icon">{{ entry[1].icon }}</span>
+              }
               <div class="cat-info">
                 <div class="cat-name">{{ entry[1].title }}</div>
                 <div class="cat-sub">{{ entry[1].sub }}</div>
               </div>
               <span class="cat-count">{{ (entry[1].items ?? {} | keyvalue).length }}</span>
+              <button class="cat-no-cust" [class.on]="entry[1].noCustomization"
+                [title]="entry[1].noCustomization ? 'אפשרויות התאמה מבוטלות — לחץ להפעיל' : 'בטל אפשרויות התאמה'"
+                (click)="$event.stopPropagation(); toggleCatCustomization(entry[0])">⊘</button>
               <button class="cat-del" (click)="$event.stopPropagation(); deleteCat(entry[0])">🗑</button>
             </div>
           }
@@ -71,11 +77,13 @@
             </h2>
             <div class="meta">{{ activeCatData()?.sub }}</div>
           </div>
-          <div class="content-tools">
-            <input type="text" class="search" placeholder="🔍 חיפוש מנה..."
-              [value]="searchQ()" (input)="searchQ.set($any($event.target).value)"/>
-            <button class="btn gold" (click)="openItemModal()">+ הוסף מנה</button>
-          </div>
+          @if (activeCatData()) {
+            <div class="content-tools">
+              <input type="text" class="search" placeholder="🔍 חיפוש מנה..."
+                [value]="searchQ()" (input)="searchQ.set($any($event.target).value)"/>
+              <button class="btn gold" (click)="openItemModal()">+ הוסף מנה</button>
+            </div>
+          }
         </div>
 
         <div class="items-grid">
@@ -113,10 +121,12 @@
             </div>
           }
           <!-- Add card -->
-          <div class="add-card" (click)="openItemModal()">
-            <span class="plus">+</span>
-            <span>הוסף מנה</span>
-          </div>
+          @if (activeCatData()) {
+            <div class="add-card" (click)="openItemModal()">
+              <span class="plus">+</span>
+              <span>הוסף מנה</span>
+            </div>
+          }
         </div>
       </section>
     </div>
@@ -135,15 +145,14 @@
 
         <!-- Image upload -->
         <div class="image-upload-row">
-          <div class="image-preview" (click)="imageInput.click()">
+          <div class="image-preview" (click)="triggerImagePick()">
             @if (imagePreview()) {
               <img [src]="imagePreview()!" alt="תמונת מנה"/>
             } @else {
               <div class="no-img">📷<span>העלה תמונה</span></div>
             }
           </div>
-          <input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
-          <button class="btn sm" (click)="imageInput.click()">{{ imagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
+          <button class="btn sm" (click)="triggerImagePick()">{{ imagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
         </div>
 
         <div class="field">
@@ -157,9 +166,9 @@
         <div class="row2">
           <div class="field">
             <label>קטגוריה</label>
-            <select [value]="fTargetCat()" (change)="fTargetCat.set($any($event.target).value)">
+            <select (change)="fTargetCat.set($any($event.target).value)">
               @for (entry of sortedCats(); track entry[0]) {
-                <option [value]="entry[0]">{{ entry[1].icon }} {{ entry[1].title }}</option>
+                <option [value]="entry[0]" [selected]="entry[0] === fTargetCat()">{{ entry[1].icon }} {{ entry[1].title }}</option>
               }
             </select>
           </div>
@@ -169,50 +178,52 @@
           </div>
         </div>
 
-        <div class="section-title">אפשרויות התאמה</div>
-        <div class="toggles">
-          <div class="toggle" [class.on]="fHasSpreads()" (click)="fHasSpreads.update(v=>!v)">
-            <div class="sw"></div><span>ממרחים</span>
-          </div>
-          <div class="toggle" [class.on]="fHasVeggies()" (click)="fHasVeggies.update(v=>!v)">
-            <div class="sw"></div><span>ירקות</span>
-          </div>
-          <div class="toggle" [class.on]="fHasSauces()" (click)="fHasSauces.update(v=>!v)">
-            <div class="sw"></div><span>רטבים</span>
-          </div>
-          <div class="toggle" [class.on]="fHasExtras()" (click)="fHasExtras.update(v=>!v)">
-            <div class="sw"></div><span>תוספות (₪5)</span>
-          </div>
-          <div class="toggle" [class.on]="fHasSizeOption()" (click)="fHasSizeOption.update(v=>!v)">
-            <div class="sw"></div><span>בחירת גודל</span>
-          </div>
-          <div class="toggle" [class.on]="fHasBurgerSize()" (click)="fHasBurgerSize.update(v=>!v)">
-            <div class="sw"></div><span>מידת קציצה</span>
-          </div>
-        </div>
-
-        @if (fHasSizeOption()) {
-          <div class="section-title">גדלים זמינים</div>
-          @for (s of fSizes(); track $index) {
-            <div class="size-row">
-              <input type="text" placeholder="שם הגודל" [value]="s.label" (input)="updateSizeLabel($index, $any($event.target).value)"/>
-              <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateSizePrice($index, +$any($event.target).value||0)"/>
-              <button class="x-mini" (click)="removeSize($index)">×</button>
+        @if (!fTargetCatNoCustomization()) {
+          <div class="section-title">אפשרויות התאמה</div>
+          <div class="toggles">
+            <div class="toggle" [class.on]="fHasSpreads()" (click)="fHasSpreads.update(v=>!v)">
+              <div class="sw"></div><span>ממרחים</span>
             </div>
-          }
-          <button class="add-mini" (click)="addSize()">+ הוסף גודל</button>
-        }
-
-        @if (fHasBurgerSize()) {
-          <div class="section-title">מידות קציצה</div>
-          @for (s of fBSizes(); track $index) {
-            <div class="size-row">
-              <input type="text" placeholder="שם המידה" [value]="s.label" (input)="updateBSizeLabel($index, $any($event.target).value)"/>
-              <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateBSizePrice($index, +$any($event.target).value||0)"/>
-              <button class="x-mini" (click)="removeBSize($index)">×</button>
+            <div class="toggle" [class.on]="fHasVeggies()" (click)="fHasVeggies.update(v=>!v)">
+              <div class="sw"></div><span>ירקות</span>
             </div>
+            <div class="toggle" [class.on]="fHasSauces()" (click)="fHasSauces.update(v=>!v)">
+              <div class="sw"></div><span>רטבים</span>
+            </div>
+            <div class="toggle" [class.on]="fHasExtras()" (click)="fHasExtras.update(v=>!v)">
+              <div class="sw"></div><span>תוספות (₪5)</span>
+            </div>
+            <div class="toggle" [class.on]="fHasSizeOption()" (click)="fHasSizeOption.update(v=>!v)">
+              <div class="sw"></div><span>בחירת גודל</span>
+            </div>
+            <div class="toggle" [class.on]="fHasBurgerSize()" (click)="fHasBurgerSize.update(v=>!v)">
+              <div class="sw"></div><span>מידת קציצה</span>
+            </div>
+          </div>
+
+          @if (fHasSizeOption()) {
+            <div class="section-title">גדלים זמינים</div>
+            @for (s of fSizes(); track $index) {
+              <div class="size-row">
+                <input type="text" placeholder="שם הגודל" [value]="s.label" (input)="updateSizeLabel($index, $any($event.target).value)"/>
+                <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateSizePrice($index, +$any($event.target).value||0)"/>
+                <button class="x-mini" (click)="removeSize($index)">×</button>
+              </div>
+            }
+            <button class="add-mini" (click)="addSize()">+ הוסף גודל</button>
           }
-          <button class="add-mini" (click)="addBSize()">+ הוסף מידה</button>
+
+          @if (fHasBurgerSize()) {
+            <div class="section-title">מידות קציצה</div>
+            @for (s of fBSizes(); track $index) {
+              <div class="size-row">
+                <input type="text" placeholder="שם המידה" [value]="s.label" (input)="updateBSizeLabel($index, $any($event.target).value)"/>
+                <input type="number" placeholder="₪" [value]="s.price" min="0" (input)="updateBSizePrice($index, +$any($event.target).value||0)"/>
+                <button class="x-mini" (click)="removeBSize($index)">×</button>
+              </div>
+            }
+            <button class="add-mini" (click)="addBSize()">+ הוסף מידה</button>
+          }
         }
 
       </div>
@@ -240,6 +251,16 @@
         <button class="x-btn" (click)="closeCatModal()">×</button>
       </div>
       <div class="modal-b">
+        <div class="image-upload-row">
+          <div class="image-preview" (click)="triggerCatImagePick()">
+            @if (cfImagePreview()) {
+              <img [src]="cfImagePreview()!" alt="תמונת קטגוריה"/>
+            } @else {
+              <div class="no-img">📷<span>העלה תמונה</span></div>
+            }
+          </div>
+          <button class="btn sm" (click)="triggerCatImagePick()">{{ cfImagePreview() ? 'החלף תמונה' : 'בחר תמונה' }}</button>
+        </div>
         <div class="row2">
           <div class="field">
             <label>שם</label>
@@ -259,12 +280,18 @@
         <div></div>
         <div class="modal-f-right">
           <button class="btn" (click)="closeCatModal()">ביטול</button>
-          <button class="btn gold" (click)="saveCat()">שמור</button>
+          <button class="btn gold" [disabled]="cfUploading()" (click)="saveCat()">
+            {{ cfUploading() ? 'מעלה...' : 'שמור' }}
+          </button>
         </div>
       </div>
     </div>
   </div>
 }
+
+<!-- always in DOM so viewChild always resolves -->
+<input #imageInput type="file" accept="image/*" style="display:none" (change)="onImagePicked($event)"/>
+<input #catImageInput type="file" accept="image/*" style="display:none" (change)="onCatImagePicked($event)"/>
 
 <app-toast #toast/>
 <app-confirm-dialog #confirm/>
